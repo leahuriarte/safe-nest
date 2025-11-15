@@ -82,59 +82,32 @@ export default function MapScreen() {
     map.add(airQualityLayer)
 
     // -----------------------------------------------------
-    // 2. HEALTHCARE FACILITIES LAYER (Client-side data)
+    // 2. HEALTHCARE FACILITIES LAYER (Real USA Hospitals Data)
     // -----------------------------------------------------
-    const sampleHospitals = [
-      { name: 'Cedars-Sinai Medical Center', lat: 34.0754, lon: -118.3768, type: 'Hospital' },
-      { name: 'UCLA Medical Center', lat: 34.0657, lon: -118.4474, type: 'Hospital' },
-      { name: 'USC Medical Center', lat: 34.0583, lon: -118.2159, type: 'Hospital' },
-      { name: 'Providence Saint Joseph Medical Center', lat: 34.1724, lon: -118.5049, type: 'Hospital' },
-      { name: 'Kaiser Permanente Los Angeles Medical Center', lat: 34.0406, lon: -118.2659, type: 'Hospital' },
-      { name: 'Good Samaritan Hospital', lat: 34.0584, lon: -118.2858, type: 'Hospital' },
-      { name: 'California Hospital Medical Center', lat: 34.0334, lon: -118.2746, type: 'Hospital' },
-      { name: 'White Memorial Medical Center', lat: 34.0285, lon: -118.2181, type: 'Hospital' },
-      { name: 'Hollywood Presbyterian Medical Center', lat: 34.0975, lon: -118.3092, type: 'Hospital' },
-      { name: 'Planned Parenthood - Downtown LA', lat: 34.0489, lon: -118.2587, type: 'Clinic' },
-      { name: 'Planned Parenthood - Hollywood', lat: 34.0928, lon: -118.3287, type: 'Clinic' },
-      { name: "Women's Health Center LA", lat: 34.0608, lon: -118.2347, type: 'Clinic' }
-    ]
-
     const healthcareFacilitiesLayer = new FeatureLayer({
       id: 'healthcare',
       title: 'Healthcare Facilities',
-      source: sampleHospitals.map((hospital, idx) => ({
-        geometry: new Point({
-          longitude: hospital.lon,
-          latitude: hospital.lat,
-          spatialReference: SpatialReference.WGS84
-        }),
-        attributes: {
-          ObjectID: idx + 1,
-          NAME: hospital.name,
-          TYPE: hospital.type
-        }
-      })),
-      fields: [
-        { name: 'ObjectID', type: 'oid' },
-        { name: 'NAME', type: 'string' },
-        { name: 'TYPE', type: 'string' }
-      ],
-      objectIdField: 'ObjectID',
-      geometryType: 'point',
-      spatialReference: SpatialReference.WGS84,
+      url: 'https://services.arcgis.com/EaQ3hSM51DBnlwMq/ArcGIS/rest/services/Hospitals/FeatureServer/0',
+      outFields: ['*'],
       renderer: new SimpleRenderer({
         symbol: new SimpleMarkerSymbol({
           color: [0, 122, 194],
-          size: 10,
+          size: 8,
           outline: { color: [255, 255, 255], width: 2 }
         })
       }),
       popupTemplate: {
         title: '{NAME}',
-        content: '<b>Type:</b> {TYPE}'
+        content: `
+          <b>Address:</b> {ADDRESS}<br>
+          <b>City:</b> {CITY}, {STATE}<br>
+          <b>Type:</b> {TYPE}<br>
+          <b>Beds:</b> {BEDS}
+        `
       }
     })
     map.add(healthcareFacilitiesLayer)
+    console.log('Real hospitals layer added (~3,110 facilities)')
     const clinicsLayer = new GraphicsLayer({
       id: 'clinics',
       title: 'Clinics'
