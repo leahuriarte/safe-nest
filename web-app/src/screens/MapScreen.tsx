@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import Map from '@arcgis/core/Map'
 import MapView from '@arcgis/core/views/MapView'
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
 import Point from '@arcgis/core/geometry/Point'
+import Graphic from '@arcgis/core/Graphic'
 import SpatialReference from '@arcgis/core/geometry/SpatialReference'
 import HeatmapRenderer from '@arcgis/core/renderers/HeatmapRenderer'
 import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer'
@@ -11,7 +13,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
 import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
-import ChatbotModal from "../components/ChatbotModal";
+import ChatbotModal from "../components/ChatbotModal"
 
 type RiskInfo = {
   overall: number
@@ -534,6 +536,12 @@ export default function MapScreen() {
     const riskOverlayL = view.map?.findLayerById('risk-overlay')
     if (riskOverlayL) (riskOverlayL as FeatureLayer).visible = showRiskOverlay
   }, [showRiskOverlay, view])
+
+  useEffect(() => {
+    if (!view) return
+    const clinicsL = view.map?.findLayerById('clinics')
+    if (clinicsL) (clinicsL as GraphicsLayer).visible = showClinics
+  }, [showClinics, view])
 
   return (
   
