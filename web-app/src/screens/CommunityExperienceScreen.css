@@ -32,7 +32,8 @@
 }
 
 .topic-card {
-  background: #d196da;
+  /* background-color: #a355add4; */
+  background-image: url("../images/lavender.jpg");
   border-radius: 12px;
   padding: 1.5rem;
   cursor: pointer;
@@ -42,7 +43,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  color: white;
+  color: #55265bd4;
 }
 
 .topic-card:hover {
@@ -87,7 +88,7 @@
 }
 
 .back-button {
-  background: #6c757d;
+  background: #a355add4;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -99,7 +100,7 @@
 }
 
 .back-button:hover {
-  background: #5a6268;
+  background: #55265bd4;
   transform: translateX(-2px);
 }
 
