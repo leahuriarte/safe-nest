@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import './App.css'
 import MapScreen from './screens/MapScreen'
-import ClinicNavigatorScreen from './screens/ClinicNavigatorScreen'
 import ClinicEvaluatorScreen from './screens/ClinicEvaluatorScreen'
 import CommunityExperienceScreen from './screens/CommunityExperienceScreen'
 import MedicalInfoScreen from './screens/MedicalInfoScreen'
 import AlternativesScreen from './screens/AlternativesScreen'
 
-type TabName = 'map' | 'clinics' | 'eval' | 'community' | 'info' | 'alternatives'
+type TabName = 'map' | 'eval' | 'community' | 'info' | 'alternatives'
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabName>('map')
@@ -16,8 +15,6 @@ function App() {
     switch (activeTab) {
       case 'map':
         return <MapScreen />
-      case 'clinics':
-        return <ClinicNavigatorScreen />
       case 'eval':
         return <ClinicEvaluatorScreen />
       case 'community':
@@ -49,16 +46,10 @@ function App() {
           Map
         </button>
         <button
-          className={activeTab === 'clinics' ? 'active' : ''}
-          onClick={() => setActiveTab('clinics')}
-        >
-          Clinics
-        </button>
-        <button
           className={activeTab === 'eval' ? 'active' : ''}
           onClick={() => setActiveTab('eval')}
         >
-          AI Eval
+          Clinic Info
         </button>
         <button
           className={activeTab === 'community' ? 'active' : ''}
@@ -70,7 +61,7 @@ function App() {
           className={activeTab === 'info' ? 'active' : ''}
           onClick={() => setActiveTab('info')}
         >
-          Info
+          Document Helper
         </button>
         <button
           className={activeTab === 'alternatives' ? 'active' : ''}
