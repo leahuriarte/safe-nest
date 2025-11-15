@@ -234,3 +234,32 @@
   flex: 1;
   height: 100%;
 }
+/* Find nearest button */
+.find-nearest-btn {
+  display: block;             /* fill width of sidebar */
+  width: 100%;
+  padding: 0.7rem 0;          /* taller, easier to click */
+  margin-top: 0.75rem;        /* space from checkboxes */
+  background: linear-gradient(135deg, #00aaff, #007acc); /* gradient for depth */
+  color: #fff;                /* text color */
+  font-weight: 600;           /* semi-bold */
+  font-size: 1rem;
+  border: none;               /* remove default border */
+  border-radius: 10px;        /* rounded corners */
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* subtle shadow */
+  transition: all 0.2s ease;  /* smooth hover effect */
+  text-align: center;
+}
+
+.find-nearest-btn:hover {
+  background: linear-gradient(135deg, #00c0ff, #005fa3); /* lighter gradient on hover */
+  transform: translateY(-2px); /* small lift effect */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25); /* stronger shadow */
+}
+
+.find-nearest-btn:active {
+  transform: translateY(0);    /* button “press” effect */
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+

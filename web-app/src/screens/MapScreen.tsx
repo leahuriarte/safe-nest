@@ -294,9 +294,8 @@ export default function MapScreen() {
           </label>
           
           <button
-            className = "find-nearest-btn"
-            onClick = {() => alert("Chatbot ccoming soon!")}
-          >
+            className = "find-nearest-btn" onClick = {() => alert("Chatbot ccoming soon!")}>
+            <span role="img" aria-label="location">📍</span> 
             Find Nearest Clinic
           </button>
           
