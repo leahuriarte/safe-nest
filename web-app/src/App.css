@@ -12,11 +12,11 @@
 }
 
 .app-header {
-  background-color: #2c3e50;
+  background-color: #d196da;
   color: white;
   padding: 1rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(49, 1, 41, 0.1);
 }
 
 .app-header h1 {
@@ -31,8 +31,8 @@
 
 .app-nav {
   display: flex;
-  background-color: #34495e;
-  border-top: 1px solid #2c3e50;
+  background-color: #d196da;
+  border-top: 1px solid #d196da;
 }
 
 .app-nav button {
@@ -47,11 +47,11 @@
 }
 
 .app-nav button:hover {
-  background-color: #2c3e50;
+  background-color: #a355add4;
 }
 
 .app-nav button.active {
-  background-color: #3498db;
+  background-color: #ac6cb6;
   font-weight: bold;
 }
 

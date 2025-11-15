@@ -11,6 +11,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
 import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
+import ChatbotModal from "../components/ChatbotModal";
 
 type RiskInfo = {
   overall: number
@@ -32,6 +33,9 @@ export default function MapScreen() {
   const [showHealthcare, setShowHealthcare] = useState(true)
   const [showEnvironmental, setShowEnvironmental] = useState(true)
   const [showRiskOverlay, setShowRiskOverlay] = useState(true)
+  const [showClinics, setShowClinics] = useState(true)
+  const [showRiskLayer, setShowRiskLayer] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false);
 
   const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
 
@@ -129,6 +133,47 @@ export default function MapScreen() {
       }
     })
     map.add(healthcareFacilitiesLayer)
+    const clinicsLayer = new GraphicsLayer({
+      id: 'clinics',
+      title: 'Clinics'
+    })
+
+    const sampleClinics = [
+      { name: 'Community Health Center', lat: 34.0522, lon: -118.2437 },
+      { name: 'Planned Parenthood Downtown', lat: 34.0489, lon: -118.2587 },
+      { name: 'Women\'s Health Clinic', lat: 34.0608, lon: -118.2347 },
+      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 }
+    ]
+
+    sampleClinics.forEach(clinic => {
+      const point = new Point({
+        longitude: clinic.lon,
+        latitude: clinic.lat
+      })
+
+      const markerSymbol = new SimpleMarkerSymbol({
+      color: [0, 122, 194],
+      size: '18px',
+      outline: { color: [255, 255, 255], width: 2 }
+      })
+
+      const graphic = new Graphic({
+        geometry: point,
+        symbol: markerSymbol,
+        attributes: {
+          name: clinic.name,
+          type: 'clinic'
+        },
+        popupTemplate: {
+          title: '{name}',
+          content: 'Health services available'
+        }
+      })
+
+      clinicsLayer.add(graphic)
+    })
+
+    map.add(clinicsLayer)
 
     // -----------------------------------------------------
     // 3. ENVIRONMENTAL HAZARDS LAYER (Client-side data)
@@ -491,6 +536,7 @@ export default function MapScreen() {
   }, [showRiskOverlay, view])
 
   return (
+  
     <div className="map-screen">
       <div className="map-controls">
         <h3>SafeNest — Pregnancy Risk Map</h3>
@@ -521,8 +567,15 @@ export default function MapScreen() {
               onChange={(e) => setShowEnvironmental(e.target.checked)} />
             Environmental Hazards
           </label>
+          
+          <button
+            className = "find-nearest-btn" onClick = {() => setChatOpen(true)}>
+            <span role="img" aria-label="location">📍</span> 
+            Find Nearest Clinic
+          </button>
+          
         </div>
-
+        
         <div className="risk-score-panel">
           <h4>Pregnancy Risk Assessment</h4>
           {isAnalyzing && <div className="calculating">Analyzing area...</div>}
@@ -558,7 +611,9 @@ export default function MapScreen() {
         </div>
       </div>
 
-      <div className="map-container" ref={mapDiv} />
+      <div className="map-container" ref={mapDiv}></div>
+      
+      {chatOpen && <ChatbotModal onClose={() => setChatOpen(false)} />}
     </div>
   )
 }
