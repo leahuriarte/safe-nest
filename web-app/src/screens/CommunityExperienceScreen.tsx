@@ -55,13 +55,50 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
           dislikes: 0,
           timestamp: Date.now() - 86400000 * 4,
           replies: []
+        },
+        {
+          id: 22,
+          user: "Aisha M.",
+          text: "I'm so sorry you experienced this. It's unfortunately too common. I recommend documenting everything and don't be afraid to request a different provider if you feel dismissed.",
+          likes: 18,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 3,
+          replies: []
+        }
+      ]
+    },
+    {
+      id: 3,
+      user: "Priya S.",
+      text: "Shoutout to the South Bay clinic for having staff that understands cultural dietary restrictions during pregnancy. They worked with me to ensure I was getting proper nutrition while respecting my vegetarian diet.",
+      likes: 35,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 8,
+      replies: []
+    },
+    {
+      id: 4,
+      user: "Mei L.",
+      text: "For anyone seeking culturally competent care in the Asian community, the Pacific Women's Center has been amazing. They understand traditional postpartum practices and work with you, not against you.",
+      likes: 29,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 6,
+      replies: [
+        {
+          id: 41,
+          user: "Linh N.",
+          text: "Thank you for this! I was worried about finding a provider who wouldn't judge traditional practices.",
+          likes: 12,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 5,
+          replies: []
         }
       ]
     }
   ],
   2: [ // Alternative Birth Methods
     {
-      id: 3,
+      id: 5,
       user: "Sarah M.",
       text: "I had a water birth at home with a doula and it was the most empowering experience of my life. Happy to answer questions!",
       likes: 56,
@@ -69,29 +106,56 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       timestamp: Date.now() - 86400000 * 7,
       replies: [
         {
-          id: 31,
+          id: 51,
           user: "Emily R.",
           text: "How did you find a good doula? I'm interested in home birth but nervous about finding the right support team.",
           likes: 12,
           dislikes: 0,
           timestamp: Date.now() - 86400000 * 6,
           replies: []
+        },
+        {
+          id: 52,
+          user: "Fatima H.",
+          text: "I also had a water birth! The pain management was so much better than I expected.",
+          likes: 8,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 5,
+          replies: []
         }
       ]
     },
     {
-      id: 4,
+      id: 6,
       user: "Yuki N.",
       text: "Hypnobirthing changed my entire perspective on labor. I highly recommend looking into it even if you're planning a hospital birth.",
       likes: 34,
       dislikes: 1,
       timestamp: Date.now() - 86400000 * 10,
       replies: []
+    },
+    {
+      id: 7,
+      user: "Destiny J.",
+      text: "Birth center was the perfect middle ground for me - medical support nearby but a more natural, home-like environment. Highly recommend if you're on the fence about home vs hospital.",
+      likes: 41,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 9,
+      replies: []
+    },
+    {
+      id: 8,
+      user: "Lakshmi P.",
+      text: "For those considering Ayurvedic practices during birth, I found a midwife who was knowledgeable and supportive. Don't be afraid to ask for what you need!",
+      likes: 27,
+      dislikes: 1,
+      timestamp: Date.now() - 86400000 * 11,
+      replies: []
     }
   ],
   3: [ // Spanish-Speakers Channel
     {
-      id: 5,
+      id: 9,
       user: "Carmen L.",
       text: "¿Alguien sabe dónde puedo encontrar clases prenatales en español en el área de Los Angeles?",
       likes: 18,
@@ -99,7 +163,7 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       timestamp: Date.now() - 86400000 * 3,
       replies: [
         {
-          id: 51,
+          id: 91,
           user: "Isabel M.",
           text: "¡Sí! El Centro de Salud Comunitario ofrece clases gratuitas los martes y jueves. Son excelentes!",
           likes: 22,
@@ -108,11 +172,39 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
           replies: []
         }
       ]
+    },
+    {
+      id: 10,
+      user: "Gabriela R.",
+      text: "Recién tuve mi bebé y quiero decirles que no tengan miedo de pedir un intérprete en el hospital. Es su derecho y los ayudará a entender todo mejor.",
+      likes: 45,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 7,
+      replies: [
+        {
+          id: 101,
+          user: "Rosa V.",
+          text: "¡Muy importante! Yo no sabía esto con mi primer bebé y me sentí muy perdida.",
+          likes: 15,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 6,
+          replies: []
+        }
+      ]
+    },
+    {
+      id: 11,
+      user: "Alejandra T.",
+      text: "Para las mamás que necesitan ayuda con WIC o Medicaid, la organización Mujeres Unidas tiene asistencia en español. Me ayudaron muchísimo.",
+      likes: 38,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 12,
+      replies: []
     }
   ],
   4: [ // Preparing for Birth
     {
-      id: 6,
+      id: 12,
       user: "Rachel K.",
       text: "Pro tip: Start doing perineal massages around week 34. It really helped me avoid tearing during delivery!",
       likes: 89,
@@ -121,18 +213,55 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       replies: []
     },
     {
-      id: 7,
+      id: 13,
       user: "Anonymous",
       text: "Don't forget to pack snacks for your birth partner! They need to keep their energy up too. Also, bring a phone charger!",
       likes: 67,
       dislikes: 0,
       timestamp: Date.now() - 86400000 * 8,
       replies: []
+    },
+    {
+      id: 14,
+      user: "Jamila A.",
+      text: "Practice your breathing techniques NOW, not just in labor. I did 10 minutes every day for the last month and it made such a difference.",
+      likes: 52,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 10,
+      replies: []
+    },
+    {
+      id: 15,
+      user: "Sophie Chen",
+      text: "Create a birth playlist! Music really helped me stay calm during early labor. Include songs that make you feel strong and peaceful.",
+      likes: 44,
+      dislikes: 1,
+      timestamp: Date.now() - 86400000 * 13,
+      replies: [
+        {
+          id: 151,
+          user: "Zara K.",
+          text: "This is such a good idea! What kind of music did you use?",
+          likes: 7,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 12,
+          replies: []
+        }
+      ]
+    },
+    {
+      id: 16,
+      user: "Naomi B.",
+      text: "Talk to your doctor about creating a birth plan, but also be flexible. I had a plan and things didn't go exactly as expected, but knowing my priorities helped me make decisions in the moment.",
+      likes: 71,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 15,
+      replies: []
     }
   ],
   5: [ // Post-Birth Practices
     {
-      id: 8,
+      id: 17,
       user: "Michelle P.",
       text: "Nobody told me about postpartum night sweats! Is this normal? I'm literally soaking through my clothes every night.",
       likes: 45,
@@ -140,7 +269,7 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       timestamp: Date.now() - 86400000 * 4,
       replies: [
         {
-          id: 81,
+          id: 171,
           user: "Dr. Amanda L.",
           text: "Completely normal! It's your body's way of getting rid of excess fluids. It should improve after a few weeks. Keep hydrated and use absorbent towels on your bed.",
           likes: 78,
@@ -149,11 +278,48 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
           replies: []
         }
       ]
+    },
+    {
+      id: 18,
+      user: "Tanya W.",
+      text: "Postpartum depression is REAL and it's nothing to be ashamed of. I waited too long to get help. Please talk to your doctor if you're struggling.",
+      likes: 156,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 9,
+      replies: [
+        {
+          id: 181,
+          user: "Yara S.",
+          text: "Thank you for sharing this. I'm struggling right now and felt so alone. Making an appointment tomorrow.",
+          likes: 62,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 8,
+          replies: []
+        }
+      ]
+    },
+    {
+      id: 19,
+      user: "Haruka M.",
+      text: "For anyone interested in traditional postpartum confinement practices, my mother-in-law helped me with modified version that worked with modern life. Don't feel like you have to choose between cultures!",
+      likes: 41,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 11,
+      replies: []
+    },
+    {
+      id: 20,
+      user: "Imani J.",
+      text: "Accept help when people offer! I tried to do everything myself and burned out so fast. Let people bring you meals, hold the baby while you shower, whatever you need.",
+      likes: 93,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 16,
+      replies: []
     }
   ],
   6: [ // Uninsured Users
     {
-      id: 9,
+      id: 21,
       user: "Jennifer H.",
       text: "For anyone uninsured: Look into your state's Medicaid program. Many states offer pregnancy coverage even if you don't qualify for regular Medicaid. It saved me thousands!",
       likes: 156,
@@ -161,7 +327,7 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       timestamp: Date.now() - 86400000 * 12,
       replies: [
         {
-          id: 91,
+          id: 211,
           user: "Anonymous",
           text: "Also, many hospitals have financial aid programs. Don't be afraid to ask about payment plans or charity care!",
           likes: 92,
@@ -170,6 +336,43 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
           replies: []
         }
       ]
+    },
+    {
+      id: 22,
+      user: "Thu N.",
+      text: "Community health centers offer sliding scale fees based on income. I paid $20 per visit when I was uninsured. They never turned me away.",
+      likes: 104,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 15,
+      replies: []
+    },
+    {
+      id: 23,
+      user: "Shanice T.",
+      text: "Don't skip prenatal care because of insurance! There are free clinics and programs. Your health and baby's health are too important.",
+      likes: 128,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 18,
+      replies: [
+        {
+          id: 231,
+          user: "Esperanza D.",
+          text: "Absolutely. I found a nonprofit that provided completely free prenatal care. They exist, you just have to search!",
+          likes: 48,
+          dislikes: 0,
+          timestamp: Date.now() - 86400000 * 17,
+          replies: []
+        }
+      ]
+    },
+    {
+      id: 24,
+      user: "Amara O.",
+      text: "WIC (Women, Infants, and Children) program provides free nutrition assistance and doesn't require insurance. They've been a lifesaver for me and my baby.",
+      likes: 87,
+      dislikes: 0,
+      timestamp: Date.now() - 86400000 * 20,
+      replies: []
     }
   ]
 };

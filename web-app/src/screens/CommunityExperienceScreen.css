@@ -119,7 +119,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
-  padding-bottom: 180px;
+  padding-bottom: 2rem;
   background: #f8f9fa;
 }
 
@@ -278,59 +278,32 @@
   background: #dee2e6;
 }
 
-/* New Comment Input */
+/* New Comment Input - Bottom Right Fixed */
 .new-comment-section {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 6rem;
+  right: 2rem;
+  width: 400px;
+  max-width: calc(100vw - 4rem);
   background: white;
-  border-top: 2px solid #e9ecef;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  border: 2px solid #d196da;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   z-index: 10;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-}
-
-.new-comment-section:hover,
-.new-comment-section:focus-within {
-  transform: translateY(0);
-}
-
-.new-comment-section::before {
-  content: "💬 Hover to comment";
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #9b4da1;
-  color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 20px 20px 0 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
-}
-
-.new-comment-section:hover::before,
-.new-comment-section:focus-within::before {
-  opacity: 0;
 }
 
 .new-comment-textarea {
   width: 100%;
-  padding: 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  font-size: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-family: inherit;
-  resize: vertical;
-  min-height: 80px;
-  margin-bottom: 0.75rem;
+  resize: none;
+  min-height: 60px;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .new-comment-textarea:focus {
@@ -342,23 +315,21 @@
   background: #d196da;
   color: white;
   border: none;
-  padding: 0.8rem 2rem;
+  padding: 0.65rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 1rem;
-  float: right;
+  font-size: 0.9rem;
+  width: 100%;
   transition: all 0.2s;
+  margin-top: 0.5rem;
 }
 
 .submit-comment-button:hover {
   background: #c077c4;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(209, 150, 218, 0.4);
 }
 
 .submit-comment-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
