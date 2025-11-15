@@ -126,13 +126,29 @@
   width: 100%;
 }
 
-.risk-badge.risk-low-risk {
+.risk-badge.risk-good-risk {
   background-color: #00e400;
   color: #000;
 }
 
 .risk-badge.risk-moderate-risk {
   background-color: #ffff00;
+  color: #000;
+}
+
+.risk-badge.risk-sensitive-risk {
+  background-color: #ff7e00;
+  color: #fff;
+}
+
+.risk-badge.risk-unhealthy-risk {
+  background-color: #ff0000;
+  color: #fff;
+}
+
+/* Legacy support */
+.risk-badge.risk-low-risk {
+  background-color: #00e400;
   color: #000;
 }
 
