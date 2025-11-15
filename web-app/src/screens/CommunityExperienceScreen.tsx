@@ -391,7 +391,7 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       replies: [
         {
           id: 171,
-          user: "Dr. Amanda L.",
+          user: "Dr. Amanda L. ☑️ ",
           text: "Completely normal! It's your body's way of getting rid of excess fluids. It should improve after a few weeks. Keep hydrated and use absorbent towels on your bed.",
           likes: 78,
           dislikes: 0,
@@ -569,7 +569,7 @@ export default function CommunityForum() {
   const topics: Topic[] = [
     { id: 1, title: "POC Experiences", description: "Share experiences at clinics and support each other", comments: [] },
     { id: 2, title: "Alternative Birth Methods", description: "Home birth, water birth, hypnobirthing, and more", comments: [] },
-    { id: 3, title: "Spanish-Speakers Channel", description: "Comunidad en español para futuras madres", comments: [] },
+    { id: 3, title: "Spanish-Speakers Channel", description: "Comunidad en español para personas embarazadas", comments: [] },
     { id: 4, title: "Preparing for Birth", description: "Tips, advice, and what to expect", comments: [] },
     { id: 5, title: "Post-Birth Practices", description: "Recovery, newborn care, and postpartum support", comments: [] },
     { id: 6, title: "Uninsured Users", description: "Resources and support for users without insurance", comments: [] },
