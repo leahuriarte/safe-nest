@@ -66,6 +66,7 @@
 
 .control-panel input[type="checkbox"] {
   margin-right: 0.5rem;
+  accent-color: #d196da;
 }
 
 .legend {
@@ -133,7 +134,7 @@
 /* Risk Score Panel */
 .risk-score-panel {
   background-color: white;
-  border: 2px solid #3498db;
+  border: 2px solid #d196da;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -143,7 +144,7 @@
 .risk-score-panel h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1rem;
-  color: #2c3e50;
+  color: #d196da;
 }
 
 .risk-badge {
@@ -199,12 +200,12 @@
 
 .risk-details p {
   margin: 0.5rem 0;
-  color: #2c3e50;
+  color: #d196da;
 }
 
 .calculating {
   font-size: 0.85rem;
-  color: #3498db;
+  color: #eeb1f5a2;
   font-style: italic;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -240,7 +241,7 @@
   width: 100%;
   padding: 0.7rem 0;          /* taller, easier to click */
   margin-top: 0.75rem;        /* space from checkboxes */
-  background: linear-gradient(135deg, #00aaff, #007acc); /* gradient for depth */
+  background: linear-gradient(135deg, #d196da, #d196da); /* gradient for depth */
   color: #fff;                /* text color */
   font-weight: 600;           /* semi-bold */
   font-size: 1rem;
@@ -253,7 +254,7 @@
 }
 
 .find-nearest-btn:hover {
-  background: linear-gradient(135deg, #00c0ff, #005fa3); /* lighter gradient on hover */
+  background: linear-gradient(135deg, #a355add4, #a355add4); /* lighter gradient on hover */
   transform: translateY(-2px); /* small lift effect */
   box-shadow: 0 6px 12px rgba(0,0,0,0.25); /* stronger shadow */
 }

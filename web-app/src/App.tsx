@@ -4,9 +4,8 @@ import MapScreen from './screens/MapScreen'
 import ClinicEvaluatorScreen from './screens/ClinicEvaluatorScreen'
 import CommunityExperienceScreen from './screens/CommunityExperienceScreen'
 import MedicalInfoScreen from './screens/MedicalInfoScreen'
-import AlternativesScreen from './screens/AlternativesScreen'
 
-type TabName = 'map' | 'eval' | 'community' | 'info' | 'alternatives'
+type TabName = 'map' | 'eval' | 'community' | 'info' 
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabName>('map')
@@ -21,8 +20,6 @@ function App() {
         return <CommunityExperienceScreen />
       case 'info':
         return <MedicalInfoScreen />
-      case 'alternatives':
-        return <AlternativesScreen />
       default:
         return <MapScreen />
     }
@@ -62,12 +59,6 @@ function App() {
           onClick={() => setActiveTab('info')}
         >
           Document Helper
-        </button>
-        <button
-          className={activeTab === 'alternatives' ? 'active' : ''}
-          onClick={() => setActiveTab('alternatives')}
-        >
-          Alternatives
         </button>
       </nav>
     </div>
