@@ -11,6 +11,7 @@ import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
 import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
+import ChatbotModal from "../components/ChatbotModal";
 
 type RiskInfo = {
   overall: number
@@ -25,6 +26,7 @@ export default function MapScreen() {
   const [riskInfo, setRiskInfo] = useState<RiskInfo | null>(null)
   const [showClinics, setShowClinics] = useState(true)
   const [showRiskLayer, setShowRiskLayer] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false);
 
   const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
 
@@ -275,6 +277,7 @@ export default function MapScreen() {
   }, [showClinics, view])
 
   return (
+  
     <div className="map-screen">
       <div className="map-controls">
         <h3>SafeNest — Health Risk Map</h3>
@@ -294,13 +297,13 @@ export default function MapScreen() {
           </label>
           
           <button
-            className = "find-nearest-btn" onClick = {() => alert("Chatbot ccoming soon!")}>
+            className = "find-nearest-btn" onClick = {() => setChatOpen(true)}>
             <span role="img" aria-label="location">📍</span> 
             Find Nearest Clinic
           </button>
           
         </div>
-
+        
         <div className="risk-score-panel">
           <h4>Unified Risk</h4>
           {isAnalyzing && <div className="calculating">Analyzing...</div>}
@@ -319,7 +322,9 @@ export default function MapScreen() {
         </div>
       </div>
 
-      <div className="map-container" ref={mapDiv} />
+      <div className="map-container" ref={mapDiv}></div>
+      
+      {chatOpen && <ChatbotModal onClose={() => setChatOpen(false)} />}
     </div>
   )
 }
