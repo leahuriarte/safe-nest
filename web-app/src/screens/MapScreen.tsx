@@ -551,12 +551,6 @@ export default function MapScreen() {
 
         <div className="control-panel">
           <h4>Map Layers</h4>
-          <label className="risk-overlay-toggle">
-            <input type="checkbox"
-              checked={showRiskOverlay}
-              onChange={(e) => setShowRiskOverlay(e.target.checked)} />
-            <strong>Risk Heatmap Overlay</strong>
-          </label>
           <label>
             <input type="checkbox"
               checked={showPollution}
@@ -575,10 +569,10 @@ export default function MapScreen() {
               onChange={(e) => setShowEnvironmental(e.target.checked)} />
             Environmental Hazards
           </label>
-          
+
           <button
             className = "find-nearest-btn" onClick = {() => setChatOpen(true)}>
-            <span role="img" aria-label="location">📍</span> 
+            <span role="img" aria-label="location">📍</span>
             Find Nearest Clinic
           </button>
           
