@@ -75,3 +75,9 @@
   font-size: 1rem;
   color: #7f8c8d;
 }
+
+.comment-card:hover {
+  border-color: #d196da;
+  box-shadow: 0 0 6px rgba(209, 150, 218, 0.4);
+}
+
