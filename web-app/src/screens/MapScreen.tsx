@@ -63,7 +63,6 @@ export default function MapScreen() {
       { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 }
     ]
 
-<<<<<<< HEAD
     sampleClinics.forEach(clinic => {
       const point = new Point({
         longitude: clinic.lon,
@@ -90,24 +89,6 @@ export default function MapScreen() {
       })
 
       clinicsLayer.add(graphic)
-=======
-    sampleClinics.forEach((c) => {
-      clinicsLayer.add(
-        new Graphic({
-          geometry: new Point({ longitude: c.lon, latitude: c.lat }),
-          symbol: new SimpleMarkerSymbol({
-            color: [0, 122, 194],
-            size: 12,
-            outline: { color: [255, 255, 255], width: 2 }
-          }),
-          attributes: { name: c.name },
-          popupTemplate: {
-            title: '{name}',
-            content: 'Health services available'
-          }
-        })
-      )
->>>>>>> 4badc2a614a7f955fe365079028d171e3efdd74d
     })
 
     map.add(clinicsLayer)
