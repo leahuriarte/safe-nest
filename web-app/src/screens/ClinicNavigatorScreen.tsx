@@ -1,5 +1,5 @@
-import Placeholder from '../components/Placeholder'
+import MapScreen from './MapScreen'
 
 export default function ClinicNavigatorScreen() {
-  return <Placeholder title="Clinic Finder / Navigator (AI)" />
+  return <MapScreen />
 }

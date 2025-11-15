@@ -84,12 +84,9 @@ export default function MapScreen() {
       })
 
       const markerSymbol = new SimpleMarkerSymbol({
-        color: [0, 122, 194],
-        size: '12px',
-        outline: {
-          color: [255, 255, 255],
-          width: 2
-        }
+      color: [0, 122, 194],
+      size: '18px',
+      outline: { color: [255, 255, 255], width: 2 }
       })
 
       const graphic = new Graphic({
@@ -200,6 +197,14 @@ export default function MapScreen() {
             />
             Show Pollution Zones
           </label>
+          
+          <button
+            className = "find-nearest-btn"
+            onClick = {() => alert("Chatbot ccoming soon!")}
+          >
+            Find Nearest Clinic
+          </button>
+          
         </div>
         <div className="info-panel">
           <h3>Health Risk Information</h3>
