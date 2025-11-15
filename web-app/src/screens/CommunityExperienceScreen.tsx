@@ -2,43 +2,45 @@ import { useState } from "react";
 
 // Dummy clinic data
 const dummyClinics = [
-  { id: 1, name: "Healthy Moms Clinic", lat: 37.7749, lng: -122.4194 },
-  { id: 2, name: "Sunshine Birth Center", lat: 37.7849, lng: -122.4094 },
+  {
+    id: 1,
+    name: "Healthy Moms Clinic",
+    location: "San Francisco, CA",
+    image: "https://via.placeholder.com/150",
+    googleRating: 4.5,
+  },
+  {
+    id: 2,
+    name: "Sunshine Birth Center",
+    location: "San Francisco, CA",
+    image: "https://via.placeholder.com/150",
+    googleRating: 4.2,
+  },
+  {
+    id: 3,
+    name: "Gentle Birth Clinic",
+    location: "San Francisco, CA",
+    image: "https://via.placeholder.com/150",
+    googleRating: 4.8,
+  },
 ];
 
 interface Comment {
   id: number;
   user: string;
   text: string;
-  parentId?: number;
 }
 
 export default function CommunityExperiences() {
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClinic, setSelectedClinic] = useState<typeof dummyClinics[0] | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
 
-  // Get user location
-  const handleFindMe = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
-      },
-      () => alert("Unable to retrieve your location")
-    );
-  };
-
-  // Filter clinics by search query
   const filteredClinics = dummyClinics.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Add a new comment
   const handleAddComment = () => {
     if (!newComment.trim()) return;
     const comment: Comment = {
@@ -50,52 +52,90 @@ export default function CommunityExperiences() {
     setNewComment("");
   };
 
-  // Map center
-  const mapCenter = userLocation || { lat: 37.7749, lng: -122.4194 };
-  const mapUrl = `https://maps.google.com/maps?q=${mapCenter.lat},${mapCenter.lng}&z=13&output=embed`;
+  // Back to clinic list
+  const handleBack = () => {
+    setSelectedClinic(null);
+    setComments([]);
+    setNewComment("");
+  };
 
-  return (
-    <div style={{ padding: "16px", fontFamily: "Arial, sans-serif" }}>
-      <h2>Community Experiences</h2>
-
-      {/* Location and search */}
-      <div style={{ margin: "16px 0", display: "flex", gap: "8px" }}>
-        <button onClick={handleFindMe}>Find My Location</button>
+  // === Clinic List View ===
+  if (!selectedClinic) {
+    return (
+      <div style={{ padding: "16px", fontFamily: "Arial, sans-serif" }}>
+        <h2>Community Experiences</h2>
         <input
           type="text"
-          placeholder="Search Clinic"
+          placeholder="Search clinic..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "100%", padding: "8px", marginBottom: "16px" }}
         />
+
+        <div
+          style={{
+            display: "flex",
+            overflowX: "auto",
+            gap: "16px",
+            paddingBottom: "16px",
+          }}
+        >
+          {filteredClinics.length > 0 ? (
+            filteredClinics.map((clinic) => (
+              <div
+                key={clinic.id}
+                style={{
+                  minWidth: "200px",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  cursor: "pointer",
+                  textAlign: "center",
+                }}
+                onClick={() => setSelectedClinic(clinic)}
+              >
+                <img
+                  src={clinic.image}
+                  alt={clinic.name}
+                  style={{ width: "100%", borderRadius: "8px" }}
+                />
+                <h4>{clinic.name}</h4>
+                <p>{clinic.location}</p>
+                <p>⭐ {clinic.googleRating}</p>
+              </div>
+            ))
+          ) : (
+            <p>No clinics found.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // === Clinic Detail View ===
+  return (
+    <div style={{ padding: "16px", fontFamily: "Arial, sans-serif" }}>
+      <button onClick={handleBack} style={{ marginBottom: "16px" }}>
+        ← Back
+      </button>
+
+      <div style={{ textAlign: "center" }}>
+        <img
+          src={selectedClinic.image}
+          alt={selectedClinic.name}
+          style={{ width: "300px", borderRadius: "8px", marginBottom: "16px" }}
+        />
+        <h2>{selectedClinic.name}</h2>
+        <p>{selectedClinic.location}</p>
+        <p>Google Rating: ⭐ {selectedClinic.googleRating}</p>
       </div>
 
-      {/* Simple Map */}
-      <div style={{ width: "100%", height: "400px", marginBottom: "16px" }}>
-        <iframe
-          title="clinic-map"
-          src={mapUrl}
-          style={{ border: 0, width: "100%", height: "100%" }}
-          allowFullScreen
-        ></iframe>
-      </div>
-
-      {/* Filtered Clinics */}
-      <div style={{ marginBottom: "16px" }}>
-        <h3>Clinics Found:</h3>
-        <ul>
-          {filteredClinics.map((clinic) => (
-            <li key={clinic.id}>{clinic.name}</li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Comments */}
-      <div>
-        <h3>Comments</h3>
+      <div style={{ marginTop: "32px" }}>
+        <h3>Community Comments</h3>
         <textarea
           rows={3}
           style={{ width: "100%", marginBottom: "8px" }}
-          placeholder="Add your experience..."
+          placeholder="Share your experience..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         />
@@ -104,13 +144,17 @@ export default function CommunityExperiences() {
           Submit
         </button>
 
-        <ul>
-          {comments.map((comment) => (
-            <li key={comment.id}>
-              <strong>{comment.user}:</strong> {comment.text}
-            </li>
-          ))}
-        </ul>
+        {comments.length > 0 ? (
+          <ul>
+            {comments.map((comment) => (
+              <li key={comment.id}>
+                <strong>{comment.user}:</strong> {comment.text}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No comments yet. Be the first to add one!</p>
+        )}
       </div>
     </div>
   );
