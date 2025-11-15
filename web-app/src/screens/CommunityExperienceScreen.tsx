@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText } from "@mui/material";
 
 // Dummy clinic data
 const dummyClinics = [
@@ -51,71 +50,68 @@ export default function CommunityExperiences() {
     setNewComment("");
   };
 
-  // Generate simple Google Maps embed URL
+  // Map center
   const mapCenter = userLocation || { lat: 37.7749, lng: -122.4194 };
   const mapUrl = `https://maps.google.com/maps?q=${mapCenter.lat},${mapCenter.lng}&z=13&output=embed`;
 
   return (
-    <Box p={2}>
-      <Typography variant="h4">Community Experiences</Typography>
+    <div style={{ padding: "16px", fontFamily: "Arial, sans-serif" }}>
+      <h2>Community Experiences</h2>
 
       {/* Location and search */}
-      <Box mt={2} mb={2} display="flex" gap={2}>
-        <Button variant="contained" onClick={handleFindMe}>
-          Find My Location
-        </Button>
-        <TextField
-          label="Search Clinic"
+      <div style={{ margin: "16px 0", display: "flex", gap: "8px" }}>
+        <button onClick={handleFindMe}>Find My Location</button>
+        <input
+          type="text"
+          placeholder="Search Clinic"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-      </Box>
+      </div>
 
       {/* Simple Map */}
-      <Box sx={{ height: "400px", width: "100%", mb: 4 }}>
+      <div style={{ width: "100%", height: "400px", marginBottom: "16px" }}>
         <iframe
           title="clinic-map"
           src={mapUrl}
           style={{ border: 0, width: "100%", height: "100%" }}
           allowFullScreen
         ></iframe>
-      </Box>
+      </div>
 
       {/* Filtered Clinics */}
-      <Box mb={4}>
-        <Typography variant="h6">Clinics Found:</Typography>
-        <List>
+      <div style={{ marginBottom: "16px" }}>
+        <h3>Clinics Found:</h3>
+        <ul>
           {filteredClinics.map((clinic) => (
-            <ListItem key={clinic.id}>
-              <ListItemText primary={clinic.name} />
-            </ListItem>
+            <li key={clinic.id}>{clinic.name}</li>
           ))}
-        </List>
-      </Box>
+        </ul>
+      </div>
 
       {/* Comments */}
-      <Box>
-        <Typography variant="h5">Comments</Typography>
-        <TextField
-          fullWidth
-          multiline
+      <div>
+        <h3>Comments</h3>
+        <textarea
           rows={3}
-          label="Add your experience..."
+          style={{ width: "100%", marginBottom: "8px" }}
+          placeholder="Add your experience..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         />
-        <Button variant="contained" sx={{ mt: 1, mb: 2 }} onClick={handleAddComment}>
+        <br />
+        <button onClick={handleAddComment} style={{ marginBottom: "16px" }}>
           Submit
-        </Button>
+        </button>
 
-        <List>
+        <ul>
           {comments.map((comment) => (
-            <ListItem key={comment.id} alignItems="flex-start">
-              <ListItemText primary={comment.user} secondary={comment.text} />
-            </ListItem>
+            <li key={comment.id}>
+              <strong>{comment.user}:</strong> {comment.text}
+            </li>
           ))}
-        </List>
-      </Box>
-    </Box>
+        </ul>
+      </div>
+    </div>
   );
 }
