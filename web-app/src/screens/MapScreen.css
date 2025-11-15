@@ -57,20 +57,130 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
-.legend-color.high-risk {
-  background-color: rgba(255, 0, 0, 0.6);
+/* EPA AQI Standard Colors */
+.legend-color.aqi-good {
+  background-color: #00e400;
 }
 
-.legend-color.medium-risk {
-  background-color: rgba(255, 165, 0, 0.6);
+.legend-color.aqi-moderate {
+  background-color: #ffff00;
 }
 
-.legend-color.low-risk {
-  background-color: rgba(255, 255, 0, 0.6);
+.legend-color.aqi-sensitive {
+  background-color: #ff7e00;
 }
 
-.legend-color.clinic-marker {
-  background-color: rgb(0, 122, 194);
+.legend-color.aqi-unhealthy {
+  background-color: #ff0000;
+}
+
+.legend-color.aqi-very-unhealthy {
+  background-color: #8f3f97;
+}
+
+.legend-color.aqi-hazardous {
+  background-color: #7e0023;
+}
+
+/* Health Risk Colors */
+.legend-color.risk-low {
+  background-color: #00e400;
+}
+
+.legend-color.risk-moderate {
+  background-color: #ffff00;
+}
+
+.legend-color.risk-high {
+  background-color: #ff7e00;
+}
+
+.legend-color.risk-very-high {
+  background-color: #ff0000;
+}
+
+/* Risk Score Panel */
+.risk-score-panel {
+  background-color: white;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.risk-score-panel h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
+.risk-badge.risk-low-risk {
+  background-color: #00e400;
+  color: #000;
+}
+
+.risk-badge.risk-moderate-risk {
+  background-color: #ffff00;
+  color: #000;
+}
+
+.risk-badge.risk-high-risk {
+  background-color: #ff7e00;
+  color: #fff;
+}
+
+.risk-badge.risk-very-high-risk {
+  background-color: #ff0000;
+  color: #fff;
+}
+
+.risk-details {
+  font-size: 0.9rem;
+}
+
+.risk-details p {
+  margin: 0.5rem 0;
+  color: #2c3e50;
+}
+
+.calculating {
+  font-size: 0.85rem;
+  color: #3498db;
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.data-source {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.data-source p {
+  margin: 0.25rem 0;
 }
 
 .map-container {
