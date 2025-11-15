@@ -2,11 +2,11 @@
 import { useEffect, useRef, useState } from 'react'
 import Map from '@arcgis/core/Map'
 import MapView from '@arcgis/core/views/MapView'
-import Point from '@arcgis/core/geometry/Point'
-import Graphic from '@arcgis/core/Graphic'
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import Point from '@arcgis/core/geometry/Point'
+import SpatialReference from '@arcgis/core/geometry/SpatialReference'
 import HeatmapRenderer from '@arcgis/core/renderers/HeatmapRenderer'
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer'
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
 import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
@@ -14,8 +14,13 @@ import './MapScreen.css'
 
 type RiskInfo = {
   overall: number
-  aqiLabel: string
+  riskLevel: string
   recommendation: string
+  factors: {
+    airQuality: string
+    healthAccess: string
+    environmental: string
+  }
 }
 
 export default function MapScreen() {
@@ -23,8 +28,10 @@ export default function MapScreen() {
   const [view, setView] = useState<MapView | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [riskInfo, setRiskInfo] = useState<RiskInfo | null>(null)
-  const [showClinics, setShowClinics] = useState(true)
-  const [showRiskLayer, setShowRiskLayer] = useState(true)
+  const [showPollution, setShowPollution] = useState(true)
+  const [showHealthcare, setShowHealthcare] = useState(true)
+  const [showEnvironmental, setShowEnvironmental] = useState(true)
+  const [showRiskOverlay, setShowRiskOverlay] = useState(true)
 
   const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
 
@@ -38,194 +45,401 @@ export default function MapScreen() {
     if (!mapDiv.current) return
 
     const map = new Map({
-      basemap: 'arcgis/topographic'
+      basemap: 'streets-navigation-vector'
     })
 
     const mapView = new MapView({
       container: mapDiv.current,
       map,
-      center: [-118.2437, 34.0522],
-      zoom: 11
+      center: [-118.2437, 34.0522], // Los Angeles
+      zoom: 12
     })
 
     // -----------------------------------------------------
-    // CLINICS LAYER (unchanged)
+    // 1. AIR QUALITY / POLLUTION LAYER
     // -----------------------------------------------------
-    const clinicsLayer = new GraphicsLayer({
-      id: 'clinics',
-      title: 'Clinics'
+    const airQualityLayer = new FeatureLayer({
+      id: 'pollution',
+      title: 'Air Quality (PM2.5)',
+      portalItem: { id: '8dcf5d4e124f480fa8c529fbe25ba04e' }, // OpenAQ PM2.5 data
+      outFields: ['*'],
+      opacity: 0.7,
+      popupTemplate: {
+        title: 'Air Quality Reading',
+        content: `
+          <b>PM2.5:</b> {pm25} µg/m³<br>
+          <b>Location:</b> {location}<br>
+          <b>Last Updated:</b> {lastUpdated}
+        `
+      }
     })
+    map.add(airQualityLayer)
 
-    const sampleClinics = [
-      { name: 'Community Health Center', lat: 34.0522, lon: -118.2437 },
-      { name: 'Planned Parenthood Downtown', lat: 34.0489, lon: -118.2587 },
-      { name: 'Women\'s Health Clinic', lat: 34.0608, lon: -118.2347 },
-      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 }
+    // -----------------------------------------------------
+    // 2. HEALTHCARE FACILITIES LAYER (Client-side data)
+    // -----------------------------------------------------
+    const sampleHospitals = [
+      { name: 'Cedars-Sinai Medical Center', lat: 34.0754, lon: -118.3768, type: 'Hospital' },
+      { name: 'UCLA Medical Center', lat: 34.0657, lon: -118.4474, type: 'Hospital' },
+      { name: 'USC Medical Center', lat: 34.0583, lon: -118.2159, type: 'Hospital' },
+      { name: 'Providence Saint Joseph Medical Center', lat: 34.1724, lon: -118.5049, type: 'Hospital' },
+      { name: 'Kaiser Permanente Los Angeles Medical Center', lat: 34.0406, lon: -118.2659, type: 'Hospital' },
+      { name: 'Good Samaritan Hospital', lat: 34.0584, lon: -118.2858, type: 'Hospital' },
+      { name: 'California Hospital Medical Center', lat: 34.0334, lon: -118.2746, type: 'Hospital' },
+      { name: 'White Memorial Medical Center', lat: 34.0285, lon: -118.2181, type: 'Hospital' },
+      { name: 'Hollywood Presbyterian Medical Center', lat: 34.0975, lon: -118.3092, type: 'Hospital' },
+      { name: 'Planned Parenthood - Downtown LA', lat: 34.0489, lon: -118.2587, type: 'Clinic' },
+      { name: 'Planned Parenthood - Hollywood', lat: 34.0928, lon: -118.3287, type: 'Clinic' },
+      { name: "Women's Health Center LA", lat: 34.0608, lon: -118.2347, type: 'Clinic' }
     ]
 
-    sampleClinics.forEach((c) => {
-      clinicsLayer.add(
-        new Graphic({
-          geometry: new Point({ longitude: c.lon, latitude: c.lat }),
-          symbol: new SimpleMarkerSymbol({
-            color: [0, 122, 194],
-            size: 12,
-            outline: { color: [255, 255, 255], width: 2 }
-          }),
-          attributes: { name: c.name },
-          popupTemplate: {
-            title: '{name}',
-            content: 'Health services available'
-          }
-        })
-      )
-    })
-
-    map.add(clinicsLayer)
-
-    // -----------------------------------------------------
-    // OpenAQ Live Layer
-    // -----------------------------------------------------
-    const openAQLayer = new FeatureLayer({
-      portalItem: { id: '8dcf5d4e124f480fa8c529fbe25ba04e' },
-      outFields: ['*'],
-      title: 'OpenAQ PM2.5'
-    })
-    map.add(openAQLayer)
-
-    // -----------------------------------------------------
-    // HEATMAP RISK LAYER (client-layer)
-    // -----------------------------------------------------
-    const riskLayer = new FeatureLayer({
-      id: "risk",
-      title: "Risk Heatmap",
-
-      source: [],       // IMPORTANT: client-side features
-
+    const healthcareFacilitiesLayer = new FeatureLayer({
+      id: 'healthcare',
+      title: 'Healthcare Facilities',
+      source: sampleHospitals.map((hospital, idx) => ({
+        geometry: new Point({
+          longitude: hospital.lon,
+          latitude: hospital.lat,
+          spatialReference: SpatialReference.WGS84
+        }),
+        attributes: {
+          ObjectID: idx + 1,
+          NAME: hospital.name,
+          TYPE: hospital.type
+        }
+      })),
       fields: [
-        { name: "ObjectID", type: "oid" },
-        { name: "pm25", type: "double" },
-        { name: "score", type: "double" },
-        { name: "nearestClinicKm", type: "double" }
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'NAME', type: 'string' },
+        { name: 'TYPE', type: 'string' }
       ],
-
-      objectIdField: "ObjectID",
-      geometryType: "point",
-
-      renderer: new HeatmapRenderer({
-        blurRadius: 24,
-        minPixelIntensity: 0,
-        maxPixelIntensity: 100,
-        colorStops: [
-          { ratio: 0.0, color: "rgba(0,228,0,0)" },
-          { ratio: 0.2, color: "rgba(0,228,0,0.40)" },
-          { ratio: 0.4, color: "rgba(255,255,0,0.60)" },
-          { ratio: 0.6, color: "rgba(255,126,0,0.75)" },
-          { ratio: 0.8, color: "rgba(255,0,0,0.85)" },
-          { ratio: 1.0, color: "rgba(126,0,35,0.95)" }
-        ]
-      })
+      objectIdField: 'ObjectID',
+      geometryType: 'point',
+      spatialReference: SpatialReference.WGS84,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          color: [0, 122, 194],
+          size: 10,
+          outline: { color: [255, 255, 255], width: 2 }
+        })
+      }),
+      popupTemplate: {
+        title: '{NAME}',
+        content: '<b>Type:</b> {TYPE}'
+      }
     })
+    map.add(healthcareFacilitiesLayer)
 
-    map.add(riskLayer)
+    // -----------------------------------------------------
+    // 3. ENVIRONMENTAL HAZARDS LAYER (Client-side data)
+    // -----------------------------------------------------
+    const sampleHazards = [
+      { name: 'Industrial Site - Vernon', lat: 34.0033, lon: -118.2337, type: 'Industrial Pollution' },
+      { name: 'Former Manufacturing Plant', lat: 34.0178, lon: -118.1848, type: 'Toxic Site' },
+      { name: 'Oil Refinery Area', lat: 33.9428, lon: -118.2468, type: 'Air Pollution Source' },
+      { name: 'Chemical Storage Facility', lat: 34.0789, lon: -118.2347, type: 'Toxic Site' },
+      { name: 'Former Waste Treatment Plant', lat: 34.0145, lon: -118.3089, type: 'Contaminated Site' },
+      { name: 'Industrial Zone - Commerce', lat: 33.9989, lon: -118.1603, type: 'Industrial Pollution' }
+    ]
+
+    const environmentalHazardsLayer = new FeatureLayer({
+      id: 'environmental',
+      title: 'Environmental Hazards',
+      source: sampleHazards.map((hazard, idx) => ({
+        geometry: new Point({
+          longitude: hazard.lon,
+          latitude: hazard.lat,
+          spatialReference: SpatialReference.WGS84
+        }),
+        attributes: {
+          ObjectID: idx + 1,
+          SITE_NAME: hazard.name,
+          TYPE: hazard.type
+        }
+      })),
+      fields: [
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'SITE_NAME', type: 'string' },
+        { name: 'TYPE', type: 'string' }
+      ],
+      objectIdField: 'ObjectID',
+      geometryType: 'point',
+      spatialReference: SpatialReference.WGS84,
+      renderer: new SimpleRenderer({
+        symbol: new SimpleMarkerSymbol({
+          color: [255, 0, 0],
+          size: 8,
+          outline: { color: [139, 0, 0], width: 2 }
+        })
+      }),
+      popupTemplate: {
+        title: 'Environmental Hazard',
+        content: '<b>Site:</b> {SITE_NAME}<br><b>Type:</b> {TYPE}'
+      }
+    })
+    map.add(environmentalHazardsLayer)
+
+    // -----------------------------------------------------
+    // 4. RISK OVERLAY HEATMAP
+    // -----------------------------------------------------
+    const riskOverlayLayer = new FeatureLayer({
+      id: 'risk-overlay',
+      title: 'Pregnancy Risk Overlay',
+      source: [],
+      fields: [
+        { name: 'ObjectID', type: 'oid' },
+        { name: 'riskScore', type: 'double' }
+      ],
+      objectIdField: 'ObjectID',
+      geometryType: 'point',
+      spatialReference: SpatialReference.WGS84,
+      renderer: new HeatmapRenderer({
+        field: 'riskScore',
+        blurRadius: 15,
+        maxDensity: 0.01,
+        minDensity: 0,
+        colorStops: [
+          { ratio: 0, color: 'rgba(0, 255, 0, 0)' },      // Transparent
+          { ratio: 0.25, color: 'rgba(0, 255, 0, 0.7)' },  // Low risk - green
+          { ratio: 0.5, color: 'rgba(255, 255, 0, 0.8)' }, // Low-moderate - yellow
+          { ratio: 0.75, color: 'rgba(255, 140, 0, 0.9)' }, // Moderate - orange
+          { ratio: 1, color: 'rgba(255, 0, 0, 1)' }      // High risk - red
+        ]
+      }),
+      opacity: 0.8
+    })
+    map.add(riskOverlayLayer)
+    console.log('Risk overlay layer added to map')
 
     setView(mapView)
 
     // -----------------------------------------------------
-    // RISK ANALYSIS + HEATMAP POINTS
+    // RISK ANALYSIS
     // -----------------------------------------------------
     let analysisTimeout: number | undefined
 
     async function performRiskAnalysis() {
-      if (!mapView || isAnalyzing) return
+      if (!mapView) return
       setIsAnalyzing(true)
 
-      await riskLayer.applyEdits({ deleteFeatures: riskLayer.source.toArray() })
-
       try {
-        const q = openAQLayer.createQuery()
-        q.geometry = mapView.extent
-        q.returnGeometry = true
-        q.outFields = ['*']
+        const extent = mapView.extent
 
-        const results = await openAQLayer.queryFeatures(q)
-        if (!results || results.features.length === 0) {
-          setRiskInfo(null)
-          setIsAnalyzing(false)
-          return
+        // Query air quality data
+        const aqQuery = airQualityLayer.createQuery()
+        aqQuery.geometry = extent
+        aqQuery.returnGeometry = true
+        aqQuery.outFields = ['*']
+
+        // Query healthcare facilities
+        const hcQuery = healthcareFacilitiesLayer.createQuery()
+        hcQuery.geometry = extent
+        hcQuery.returnGeometry = true
+        hcQuery.outFields = ['*']
+
+        // Query environmental hazards
+        const envQuery = environmentalHazardsLayer.createQuery()
+        envQuery.geometry = extent
+        envQuery.returnGeometry = true
+        envQuery.outFields = ['*']
+
+        const [aqResults, hcResults, envResults] = await Promise.all([
+          airQualityLayer.queryFeatures(aqQuery).catch(() => ({ features: [] })),
+          healthcareFacilitiesLayer.queryFeatures(hcQuery).catch(() => ({ features: [] })),
+          environmentalHazardsLayer.queryFeatures(envQuery).catch(() => ({ features: [] }))
+        ])
+
+        // Calculate risk scores
+        let airQualityScore = 0
+        let healthAccessScore = 0
+        let environmentalScore = 0
+
+        // Air Quality Assessment
+        if (aqResults.features.length > 0) {
+          const avgPM25 = aqResults.features.reduce((sum, f) => {
+            const pm25 = f.attributes.pm25 || f.attributes.pm25_mean || f.attributes.value || 0
+            return sum + pm25
+          }, 0) / aqResults.features.length
+
+          if (avgPM25 > 150) airQualityScore = 90
+          else if (avgPM25 > 55) airQualityScore = 60
+          else if (avgPM25 > 35) airQualityScore = 40
+          else if (avgPM25 > 12) airQualityScore = 20
+          else airQualityScore = 5
         }
 
-        const clinics = clinicsLayer.graphics.toArray()
-        let sumPM25 = 0
+        // Healthcare Access Assessment
+        const facilitiesCount = hcResults.features.length
+        if (facilitiesCount === 0) healthAccessScore = 80
+        else if (facilitiesCount < 3) healthAccessScore = 50
+        else if (facilitiesCount < 5) healthAccessScore = 30
+        else healthAccessScore = 10
 
-        const adds: any[] = []
+        // Environmental Hazards Assessment
+        const hazardsCount = envResults.features.length
+        if (hazardsCount > 5) environmentalScore = 80
+        else if (hazardsCount > 2) environmentalScore = 50
+        else if (hazardsCount > 0) environmentalScore = 30
+        else environmentalScore = 5
 
-        for (const feat of results.features) {
-          const geom = feat.geometry as Point
-          const pm25 =
-            (feat.attributes.pm25 ||
-              feat.attributes.pm25_mean ||
-              feat.attributes.value ||
-              feat.attributes.measurement) ?? 0
+        // Overall Risk Calculation
+        const overall = Math.round(
+          (airQualityScore * 0.4) +
+          (healthAccessScore * 0.35) +
+          (environmentalScore * 0.25)
+        )
 
-          sumPM25 += pm25
+        let riskLevel = 'Low'
+        let recommendation = 'This area is generally safe for pregnancy.'
 
-          // compute distance to nearest clinic
-          let nearestKm = Infinity
-          for (const cg of clinics) {
-            const cp = cg.geometry as Point
-            const dx = geom.longitude - cp.longitude
-            const dy = geom.latitude - cp.latitude
-            const distKm = Math.sqrt(dx * dx + dy * dy) * 111
-            if (distKm < nearestKm) nearestKm = distKm
-          }
+        if (overall >= 70) {
+          riskLevel = 'High'
+          recommendation = 'High risk area - consider relocating or consulting healthcare provider about environmental concerns.'
+        } else if (overall >= 50) {
+          riskLevel = 'Moderate'
+          recommendation = 'Moderate risk - take precautions and ensure regular prenatal care.'
+        } else if (overall >= 30) {
+          riskLevel = 'Low-Moderate'
+          recommendation = 'Generally safe, but monitor air quality and maintain regular checkups.'
+        }
 
-          // Risk scoring
-          let score = 0
-          if (pm25 > 150) score += 60
-          else if (pm25 > 55) score += 40
-          else if (pm25 > 35) score += 20
-          else score += 5
+        // -----------------------------------------------------
+        // GENERATE HEATMAP OVERLAY
+        // -----------------------------------------------------
+        // Clear existing heatmap points
+        await riskOverlayLayer.applyEdits({ deleteFeatures: riskOverlayLayer.source.toArray() })
 
-          if (nearestKm > 5) score += 30
-          else if (nearestKm > 2) score += 15
+        // Create a grid of points across the visible extent
+        const gridSize = 30 // 30x30 grid for better coverage
+        const xStep = (extent.xmax - extent.xmin) / gridSize
+        const yStep = (extent.ymax - extent.ymin) / gridSize
 
-          score = Math.min(100, Math.round(score))
+        const heatmapFeatures: any[] = []
 
-          // Add to heatmap layer
-          adds.push({
-            geometry: new Point({ longitude: geom.longitude, latitude: geom.latitude }),
-            attributes: {
-              pm25,
-              score,
-              nearestClinicKm: Number(nearestKm.toFixed(2))
+        console.log('Generating heatmap with', gridSize * gridSize, 'points')
+
+        let objectIdCounter = 1
+
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const lon = extent.xmin + (i * xStep) + (xStep / 2)
+            const lat = extent.ymin + (j * yStep) + (yStep / 2)
+            const point = new Point({
+              longitude: lon,
+              latitude: lat,
+              spatialReference: SpatialReference.WGS84
+            })
+
+            // Calculate risk for this point
+            let pointRisk = 0
+
+            // Air quality - find nearest sensor
+            if (aqResults.features.length > 0) {
+              let minDist = Infinity
+              let nearestPM25 = 0
+              for (const aqFeature of aqResults.features) {
+                const aqPoint = aqFeature.geometry as Point
+                const dist = Math.sqrt(
+                  Math.pow(lon - aqPoint.longitude, 2) +
+                  Math.pow(lat - aqPoint.latitude, 2)
+                )
+                if (dist < minDist) {
+                  minDist = dist
+                  nearestPM25 = aqFeature.attributes.pm25 || aqFeature.attributes.pm25_mean || aqFeature.attributes.value || 0
+                }
+              }
+
+              if (nearestPM25 > 150) pointRisk += 36
+              else if (nearestPM25 > 55) pointRisk += 24
+              else if (nearestPM25 > 35) pointRisk += 16
+              else if (nearestPM25 > 12) pointRisk += 8
+              else pointRisk += 2
             }
-          })
+
+            // Healthcare access - distance to nearest facility
+            if (hcResults.features.length > 0) {
+              let minDist = Infinity
+              for (const hcFeature of hcResults.features) {
+                const hcPoint = hcFeature.geometry as Point
+                const dist = Math.sqrt(
+                  Math.pow(lon - hcPoint.longitude, 2) +
+                  Math.pow(lat - hcPoint.latitude, 2)
+                ) * 111 // rough km conversion
+                if (dist < minDist) minDist = dist
+              }
+
+              if (minDist > 10) pointRisk += 28
+              else if (minDist > 5) pointRisk += 17.5
+              else if (minDist > 2) pointRisk += 10.5
+              else pointRisk += 3.5
+            } else {
+              pointRisk += 28 // No facilities nearby
+            }
+
+            // Environmental hazards - proximity to toxic sites
+            let hazardProximity = 0
+            for (const envFeature of envResults.features) {
+              const envPoint = envFeature.geometry as Point
+              const dist = Math.sqrt(
+                Math.pow(lon - envPoint.longitude, 2) +
+                Math.pow(lat - envPoint.latitude, 2)
+              ) * 111 // rough km conversion
+
+              if (dist < 2) hazardProximity += 20
+              else if (dist < 5) hazardProximity += 12.5
+              else if (dist < 10) hazardProximity += 7.5
+            }
+            pointRisk += Math.min(25, hazardProximity)
+
+            // Add point to heatmap
+            heatmapFeatures.push({
+              geometry: point,
+              attributes: {
+                ObjectID: objectIdCounter++,
+                riskScore: pointRisk
+              }
+            })
+          }
         }
 
-        await riskLayer.applyEdits({ addFeatures: adds })
-
-        const avgPM25 = sumPM25 / results.features.length
-        let overall = 10
-        let rec = 'Air quality is good.'
-        if (avgPM25 > 150) {
-          overall = 90
-          rec = 'Unhealthy — limit outdoor exposure.'
-        } else if (avgPM25 > 55) {
-          overall = 60
-          rec = 'Moderate — sensitive groups limit activity.'
-        } else if (avgPM25 > 35) {
-          overall = 40
-          rec = 'Acceptable but may affect sensitive people.'
+        // Apply all heatmap points
+        console.log('Adding', heatmapFeatures.length, 'heatmap features')
+        console.log('Sample feature:', heatmapFeatures[0])
+        const riskScores = heatmapFeatures.map(f => f.attributes.riskScore)
+        console.log('Risk score range:', Math.min(...riskScores), 'to', Math.max(...riskScores))
+        const edits = await riskOverlayLayer.applyEdits({ addFeatures: heatmapFeatures })
+        console.log('Heatmap edits result:', edits)
+        if (edits.addFeatureResults) {
+          console.log('Add results:', edits.addFeatureResults)
+          const errors = edits.addFeatureResults.filter(r => r.error)
+          if (errors.length > 0) {
+            console.error('Errors adding features:', errors)
+          }
         }
+        console.log('Risk overlay layer feature count:', riskOverlayLayer.source.length)
 
         setRiskInfo({
           overall,
-          aqiLabel: avgPM25 > 150 ? 'Unhealthy' : avgPM25 > 55 ? 'Moderate' : avgPM25 > 35 ? 'Sensitive' : 'Good',
-          recommendation: rec
+          riskLevel,
+          recommendation,
+          factors: {
+            airQuality: airQualityScore > 60 ? 'Poor' : airQualityScore > 30 ? 'Moderate' : 'Good',
+            healthAccess: healthAccessScore > 60 ? 'Limited' : healthAccessScore > 30 ? 'Adequate' : 'Good',
+            environmental: environmentalScore > 60 ? 'High Concern' : environmentalScore > 30 ? 'Moderate' : 'Low Concern'
+          }
         })
       } catch (err) {
-        console.error('Risk error', err)
+        console.error('Risk analysis error:', err)
+        setRiskInfo({
+          overall: 0,
+          riskLevel: 'Unknown',
+          recommendation: 'Unable to calculate risk. Try zooming or moving the map.',
+          factors: {
+            airQuality: 'N/A',
+            healthAccess: 'N/A',
+            environmental: 'N/A'
+          }
+        })
       } finally {
         setIsAnalyzing(false)
       }
@@ -236,13 +450,13 @@ export default function MapScreen() {
       (stationary) => {
         if (stationary) {
           if (analysisTimeout) clearTimeout(analysisTimeout)
-          analysisTimeout = window.setTimeout(() => performRiskAnalysis(), 500)
+          analysisTimeout = window.setTimeout(() => performRiskAnalysis(), 1000)
         }
       }
     )
 
     mapView.when(() => {
-      setTimeout(() => performRiskAnalysis(), 800)
+      setTimeout(() => performRiskAnalysis(), 1500)
     })
 
     return () => {
@@ -254,51 +468,93 @@ export default function MapScreen() {
   // Layer visibility toggles
   useEffect(() => {
     if (!view) return
-    const riskL = view.map?.findLayerById('risk')
-    if (riskL) (riskL as FeatureLayer).visible = showRiskLayer
-  }, [showRiskLayer, view])
+    const pollutionL = view.map?.findLayerById('pollution')
+    if (pollutionL) (pollutionL as FeatureLayer).visible = showPollution
+  }, [showPollution, view])
 
   useEffect(() => {
     if (!view) return
-    const clinicsL = view.map?.findLayerById('clinics')
-    if (clinicsL) (clinicsL as GraphicsLayer).visible = showClinics
-  }, [showClinics, view])
+    const healthcareL = view.map?.findLayerById('healthcare')
+    if (healthcareL) (healthcareL as FeatureLayer).visible = showHealthcare
+  }, [showHealthcare, view])
+
+  useEffect(() => {
+    if (!view) return
+    const environmentalL = view.map?.findLayerById('environmental')
+    if (environmentalL) (environmentalL as FeatureLayer).visible = showEnvironmental
+  }, [showEnvironmental, view])
+
+  useEffect(() => {
+    if (!view) return
+    const riskOverlayL = view.map?.findLayerById('risk-overlay')
+    if (riskOverlayL) (riskOverlayL as FeatureLayer).visible = showRiskOverlay
+  }, [showRiskOverlay, view])
 
   return (
     <div className="map-screen">
       <div className="map-controls">
-        <h3>SafeNest — Health Risk Map</h3>
+        <h3>SafeNest — Pregnancy Risk Map</h3>
 
         <div className="control-panel">
-          <label>
+          <h4>Map Layers</h4>
+          <label className="risk-overlay-toggle">
             <input type="checkbox"
-              checked={showRiskLayer}
-              onChange={(e) => setShowRiskLayer(e.target.checked)} />
-            Unified Risk Heatmap
+              checked={showRiskOverlay}
+              onChange={(e) => setShowRiskOverlay(e.target.checked)} />
+            <strong>Risk Heatmap Overlay</strong>
           </label>
           <label>
             <input type="checkbox"
-              checked={showClinics}
-              onChange={(e) => setShowClinics(e.target.checked)} />
-            Clinic locations
+              checked={showPollution}
+              onChange={(e) => setShowPollution(e.target.checked)} />
+            Air Quality / Pollution
+          </label>
+          <label>
+            <input type="checkbox"
+              checked={showHealthcare}
+              onChange={(e) => setShowHealthcare(e.target.checked)} />
+            Healthcare Facilities
+          </label>
+          <label>
+            <input type="checkbox"
+              checked={showEnvironmental}
+              onChange={(e) => setShowEnvironmental(e.target.checked)} />
+            Environmental Hazards
           </label>
         </div>
 
         <div className="risk-score-panel">
-          <h4>Unified Risk</h4>
-          {isAnalyzing && <div className="calculating">Analyzing...</div>}
+          <h4>Pregnancy Risk Assessment</h4>
+          {isAnalyzing && <div className="calculating">Analyzing area...</div>}
           {riskInfo ? (
             <>
-              <div className={`risk-badge risk-${riskInfo.aqiLabel.toLowerCase()}`}>
-                {riskInfo.overall}/100 — {riskInfo.aqiLabel}
+              <div className={`risk-badge risk-${riskInfo.riskLevel.toLowerCase().replace(/\s+/g, '-')}`}>
+                {riskInfo.overall}/100 — {riskInfo.riskLevel} Risk
               </div>
-              <p><strong>Recommendation:</strong> {riskInfo.recommendation}</p>
+              <div className="risk-details">
+                <p><strong>Air Quality:</strong> {riskInfo.factors.airQuality}</p>
+                <p><strong>Healthcare Access:</strong> {riskInfo.factors.healthAccess}</p>
+                <p><strong>Environmental:</strong> {riskInfo.factors.environmental}</p>
+              </div>
+              <p className="recommendation"><strong>Recommendation:</strong> {riskInfo.recommendation}</p>
             </>
-          ) : (!isAnalyzing && <div>Move or zoom map to calculate risk.</div>)}
+          ) : (!isAnalyzing && <div>Move or zoom the map to analyze this area.</div>)}
+        </div>
+
+        <div className="legend">
+          <h4>Legend</h4>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#007ac2' }}></div>
+            <span>Healthcare Facilities</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#ff0000' }}></div>
+            <span>Environmental Hazards</span>
+          </div>
         </div>
 
         <div className="data-source">
-          <p>Data: OpenAQ, sample clinics</p>
+          <p>Data sources: OpenAQ (Air Quality), ArcGIS Living Atlas (Healthcare & Environmental Hazards)</p>
         </div>
       </div>
 
