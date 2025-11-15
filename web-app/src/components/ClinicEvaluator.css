@@ -6,7 +6,7 @@
   max-height: 80vh;
   background: #f8f9fa;
   overflow: hidden;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Quicksand', system-ui, sans-serif;
 }
 
 .evaluator-header {
