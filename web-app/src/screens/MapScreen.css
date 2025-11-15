@@ -1,0 +1,79 @@
+@import url('https://js.arcgis.com/4.31/@arcgis/core/assets/esri/themes/light/main.css');
+
+.map-screen {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.map-controls {
+  width: 300px;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  overflow-y: auto;
+  border-right: 1px solid #dee2e6;
+}
+
+.control-panel,
+.info-panel {
+  margin-bottom: 1.5rem;
+}
+
+.control-panel h3,
+.info-panel h3 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.control-panel label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.control-panel input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.legend-color.high-risk {
+  background-color: rgba(255, 0, 0, 0.6);
+}
+
+.legend-color.medium-risk {
+  background-color: rgba(255, 165, 0, 0.6);
+}
+
+.legend-color.low-risk {
+  background-color: rgba(255, 255, 0, 0.6);
+}
+
+.legend-color.clinic-marker {
+  background-color: rgb(0, 122, 194);
+}
+
+.map-container {
+  flex: 1;
+  height: 100%;
+}
