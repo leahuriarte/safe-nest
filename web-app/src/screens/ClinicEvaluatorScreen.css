@@ -1,0 +1,16 @@
+/* Clinic Evaluator Screen Styles */
+.clinic-evaluator-screen {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f8f9fa;
+}
+
+.screen-container {
+  width: 100%;
+  max-width: 1000px;
+  height: calc(100vh - 4rem);
+  margin-top: 1rem;
+}
