@@ -1,82 +1,69 @@
+// src/screens/MapScreen.tsx
 import { useEffect, useRef, useState } from 'react'
 import Map from '@arcgis/core/Map'
 import MapView from '@arcgis/core/views/MapView'
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
-import Graphic from '@arcgis/core/Graphic'
 import Point from '@arcgis/core/geometry/Point'
-import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
+import Graphic from '@arcgis/core/Graphic'
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import HeatmapRenderer from '@arcgis/core/renderers/HeatmapRenderer'
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
+import esriConfig from '@arcgis/core/config'
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
 
+type RiskInfo = {
+  overall: number
+  aqiLabel: string
+  recommendation: string
+}
+
 export default function MapScreen() {
-  const mapDiv = useRef<HTMLDivElement>(null)
+  const mapDiv = useRef<HTMLDivElement | null>(null)
   const [view, setView] = useState<MapView | null>(null)
-  const [showPollution, setShowPollution] = useState(true)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [riskInfo, setRiskInfo] = useState<RiskInfo | null>(null)
   const [showClinics, setShowClinics] = useState(true)
+  const [showRiskLayer, setShowRiskLayer] = useState(true)
+
+  const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
 
   useEffect(() => {
+    if (!apiKey) {
+      console.error('ArcGIS API key missing.')
+      return
+    }
+
+    esriConfig.apiKey = apiKey
     if (!mapDiv.current) return
 
-    // Create the map
     const map = new Map({
-      basemap: 'topo-vector'
+      basemap: 'arcgis/topographic'
     })
 
-    // Create the view
     const mapView = new MapView({
       container: mapDiv.current,
-      map: map,
-      center: [-118.2437, 34.0522], // Los Angeles coordinates
+      map,
+      center: [-118.2437, 34.0522],
       zoom: 11
     })
 
-    // Add graphics layers
+    // -----------------------------------------------------
+    // CLINICS LAYER (unchanged)
+    // -----------------------------------------------------
     const clinicsLayer = new GraphicsLayer({
       id: 'clinics',
-      title: 'Health Clinics'
+      title: 'Clinics'
     })
 
-    const pollutionLayer = new GraphicsLayer({
-      id: 'pollution',
-      title: 'Pollution Zones'
-    })
-
-    // ========== REAL ARCGIS LIVING ATLAS LAYERS (VERIFIED) ==========
-
-    // OpenAQ Recent Conditions in Air Quality (PM2.5)
-    // Updates hourly with 3,500+ monitoring stations worldwide
-    // Source: ArcGIS Living Atlas - Item ID: 8dcf5d4e124f480fa8c529fbe25ba04e
-    const openAQLayer = new FeatureLayer({
-      portalItem: {
-        id: '8dcf5d4e124f480fa8c529fbe25ba04e'
-      },
-      title: 'OpenAQ Air Quality (PM2.5)',
-      visible: true,
-      opacity: 0.8
-    })
-
-    // AirNow AQI Forecast (EPA)
-    // Real-time AQI forecast contours for O3 and PM2.5
-    // Source: ArcGIS Living Atlas / US EPA
-    const airNowLayer = new FeatureLayer({
-      url: 'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/AirNowAQIForecast/FeatureServer/0',
-      title: 'EPA AirNow AQI Forecast',
-      visible: true,
-      opacity: 0.7
-    })
-
-    map.addMany([airNowLayer, openAQLayer, pollutionLayer, clinicsLayer])
-
-    console.log('✅ REAL Living Atlas layers added: EPA AirNow, OpenAQ (3500+ stations), Clinics')
-
-    // Add sample clinic locations
     const sampleClinics = [
       { name: 'Community Health Center', lat: 34.0522, lon: -118.2437 },
       { name: 'Planned Parenthood Downtown', lat: 34.0489, lon: -118.2587 },
-      { name: 'Womens Health Clinic', lat: 34.0608, lon: -118.2347 },
-      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 },
+      { name: 'Women\'s Health Clinic', lat: 34.0608, lon: -118.2347 },
+      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 }
     ]
 
+<<<<<<< HEAD
     sampleClinics.forEach(clinic => {
       const point = new Point({
         longitude: clinic.lon,
@@ -103,99 +90,226 @@ export default function MapScreen() {
       })
 
       clinicsLayer.add(graphic)
+=======
+    sampleClinics.forEach((c) => {
+      clinicsLayer.add(
+        new Graphic({
+          geometry: new Point({ longitude: c.lon, latitude: c.lat }),
+          symbol: new SimpleMarkerSymbol({
+            color: [0, 122, 194],
+            size: 12,
+            outline: { color: [255, 255, 255], width: 2 }
+          }),
+          attributes: { name: c.name },
+          popupTemplate: {
+            title: '{name}',
+            content: 'Health services available'
+          }
+        })
+      )
+>>>>>>> 4badc2a614a7f955fe365079028d171e3efdd74d
     })
 
-    // Add sample pollution zones (simplified for demo)
-    const pollutionZones = [
-      { lat: 34.0580, lon: -118.2550, level: 'high' },
-      { lat: 34.0450, lon: -118.2400, level: 'medium' },
-      { lat: 34.0620, lon: -118.2380, level: 'low' },
-    ]
+    map.add(clinicsLayer)
 
-    pollutionZones.forEach(zone => {
-      const point = new Point({
-        longitude: zone.lon,
-        latitude: zone.lat
-      })
-
-      const color = zone.level === 'high'
-        ? [255, 0, 0, 0.3]
-        : zone.level === 'medium'
-        ? [255, 165, 0, 0.3]
-        : [255, 255, 0, 0.3]
-
-      const circle = {
-        type: 'simple-marker',
-        color: color,
-        size: '40px',
-        outline: {
-          color: [255, 255, 255, 0.5],
-          width: 1
-        }
-      }
-
-      const graphic = new Graphic({
-        // @ts-ignore
-        geometry: point,
-        // @ts-ignore
-        symbol: circle,
-        attributes: {
-          level: zone.level
-        },
-        popupTemplate: {
-          title: 'Pollution Zone',
-          content: `Pollution Level: ${zone.level}`
-        }
-      })
-
-      pollutionLayer.add(graphic)
+    // -----------------------------------------------------
+    // OpenAQ Live Layer
+    // -----------------------------------------------------
+    const openAQLayer = new FeatureLayer({
+      portalItem: { id: '8dcf5d4e124f480fa8c529fbe25ba04e' },
+      outFields: ['*'],
+      title: 'OpenAQ PM2.5'
     })
+    map.add(openAQLayer)
+
+    // -----------------------------------------------------
+    // HEATMAP RISK LAYER (client-layer)
+    // -----------------------------------------------------
+    const riskLayer = new FeatureLayer({
+      id: "risk",
+      title: "Risk Heatmap",
+
+      source: [],       // IMPORTANT: client-side features
+
+      fields: [
+        { name: "ObjectID", type: "oid" },
+        { name: "pm25", type: "double" },
+        { name: "score", type: "double" },
+        { name: "nearestClinicKm", type: "double" }
+      ],
+
+      objectIdField: "ObjectID",
+      geometryType: "point",
+
+      renderer: new HeatmapRenderer({
+        blurRadius: 24,
+        minPixelIntensity: 0,
+        maxPixelIntensity: 100,
+        colorStops: [
+          { ratio: 0.0, color: "rgba(0,228,0,0)" },
+          { ratio: 0.2, color: "rgba(0,228,0,0.40)" },
+          { ratio: 0.4, color: "rgba(255,255,0,0.60)" },
+          { ratio: 0.6, color: "rgba(255,126,0,0.75)" },
+          { ratio: 0.8, color: "rgba(255,0,0,0.85)" },
+          { ratio: 1.0, color: "rgba(126,0,35,0.95)" }
+        ]
+      })
+    })
+
+    map.add(riskLayer)
 
     setView(mapView)
 
-    // Cleanup
+    // -----------------------------------------------------
+    // RISK ANALYSIS + HEATMAP POINTS
+    // -----------------------------------------------------
+    let analysisTimeout: number | undefined
+
+    async function performRiskAnalysis() {
+      if (!mapView || isAnalyzing) return
+      setIsAnalyzing(true)
+
+      await riskLayer.applyEdits({ deleteFeatures: riskLayer.source.toArray() })
+
+      try {
+        const q = openAQLayer.createQuery()
+        q.geometry = mapView.extent
+        q.returnGeometry = true
+        q.outFields = ['*']
+
+        const results = await openAQLayer.queryFeatures(q)
+        if (!results || results.features.length === 0) {
+          setRiskInfo(null)
+          setIsAnalyzing(false)
+          return
+        }
+
+        const clinics = clinicsLayer.graphics.toArray()
+        let sumPM25 = 0
+
+        const adds: any[] = []
+
+        for (const feat of results.features) {
+          const geom = feat.geometry as Point
+          const pm25 =
+            (feat.attributes.pm25 ||
+              feat.attributes.pm25_mean ||
+              feat.attributes.value ||
+              feat.attributes.measurement) ?? 0
+
+          sumPM25 += pm25
+
+          // compute distance to nearest clinic
+          let nearestKm = Infinity
+          for (const cg of clinics) {
+            const cp = cg.geometry as Point
+            const dx = geom.longitude - cp.longitude
+            const dy = geom.latitude - cp.latitude
+            const distKm = Math.sqrt(dx * dx + dy * dy) * 111
+            if (distKm < nearestKm) nearestKm = distKm
+          }
+
+          // Risk scoring
+          let score = 0
+          if (pm25 > 150) score += 60
+          else if (pm25 > 55) score += 40
+          else if (pm25 > 35) score += 20
+          else score += 5
+
+          if (nearestKm > 5) score += 30
+          else if (nearestKm > 2) score += 15
+
+          score = Math.min(100, Math.round(score))
+
+          // Add to heatmap layer
+          adds.push({
+            geometry: new Point({ longitude: geom.longitude, latitude: geom.latitude }),
+            attributes: {
+              pm25,
+              score,
+              nearestClinicKm: Number(nearestKm.toFixed(2))
+            }
+          })
+        }
+
+        await riskLayer.applyEdits({ addFeatures: adds })
+
+        const avgPM25 = sumPM25 / results.features.length
+        let overall = 10
+        let rec = 'Air quality is good.'
+        if (avgPM25 > 150) {
+          overall = 90
+          rec = 'Unhealthy — limit outdoor exposure.'
+        } else if (avgPM25 > 55) {
+          overall = 60
+          rec = 'Moderate — sensitive groups limit activity.'
+        } else if (avgPM25 > 35) {
+          overall = 40
+          rec = 'Acceptable but may affect sensitive people.'
+        }
+
+        setRiskInfo({
+          overall,
+          aqiLabel: avgPM25 > 150 ? 'Unhealthy' : avgPM25 > 55 ? 'Moderate' : avgPM25 > 35 ? 'Sensitive' : 'Good',
+          recommendation: rec
+        })
+      } catch (err) {
+        console.error('Risk error', err)
+      } finally {
+        setIsAnalyzing(false)
+      }
+    }
+
+    reactiveUtils.watch(
+      () => mapView.stationary,
+      (stationary) => {
+        if (stationary) {
+          if (analysisTimeout) clearTimeout(analysisTimeout)
+          analysisTimeout = window.setTimeout(() => performRiskAnalysis(), 500)
+        }
+      }
+    )
+
+    mapView.when(() => {
+      setTimeout(() => performRiskAnalysis(), 800)
+    })
+
     return () => {
+      if (analysisTimeout) clearTimeout(analysisTimeout)
       mapView.destroy()
     }
-  }, [])
+  }, [apiKey])
 
-  // Toggle layers
+  // Layer visibility toggles
   useEffect(() => {
-    if (!view || !view.map) return
-    const pollutionLayer = view.map.findLayerById('pollution')
-    if (pollutionLayer) {
-      pollutionLayer.visible = showPollution
-    }
-  }, [showPollution, view])
+    if (!view) return
+    const riskL = view.map?.findLayerById('risk')
+    if (riskL) (riskL as FeatureLayer).visible = showRiskLayer
+  }, [showRiskLayer, view])
 
   useEffect(() => {
-    if (!view || !view.map) return
-    const clinicsLayer = view.map.findLayerById('clinics')
-    if (clinicsLayer) {
-      clinicsLayer.visible = showClinics
-    }
+    if (!view) return
+    const clinicsL = view.map?.findLayerById('clinics')
+    if (clinicsL) (clinicsL as GraphicsLayer).visible = showClinics
   }, [showClinics, view])
 
   return (
     <div className="map-screen">
       <div className="map-controls">
+        <h3>SafeNest — Health Risk Map</h3>
+
         <div className="control-panel">
-          <h3>Map Layers</h3>
           <label>
-            <input
-              type="checkbox"
-              checked={showClinics}
-              onChange={(e) => setShowClinics(e.target.checked)}
-            />
-            Show Health Clinics
+            <input type="checkbox"
+              checked={showRiskLayer}
+              onChange={(e) => setShowRiskLayer(e.target.checked)} />
+            Unified Risk Heatmap
           </label>
           <label>
-            <input
-              type="checkbox"
-              checked={showPollution}
-              onChange={(e) => setShowPollution(e.target.checked)}
-            />
-            Show Pollution Zones
+            <input type="checkbox"
+              checked={showClinics}
+              onChange={(e) => setShowClinics(e.target.checked)} />
+            Clinic locations
           </label>
           
           <button
@@ -206,29 +320,26 @@ export default function MapScreen() {
           </button>
           
         </div>
-        <div className="info-panel">
-          <h3>Health Risk Information</h3>
-          <div className="legend">
-            <div className="legend-item">
-              <span className="legend-color high-risk"></span>
-              <span>High Pollution Risk</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color medium-risk"></span>
-              <span>Medium Pollution Risk</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color low-risk"></span>
-              <span>Low Pollution Risk</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color clinic-marker"></span>
-              <span>Health Clinic</span>
-            </div>
-          </div>
+
+        <div className="risk-score-panel">
+          <h4>Unified Risk</h4>
+          {isAnalyzing && <div className="calculating">Analyzing...</div>}
+          {riskInfo ? (
+            <>
+              <div className={`risk-badge risk-${riskInfo.aqiLabel.toLowerCase()}`}>
+                {riskInfo.overall}/100 — {riskInfo.aqiLabel}
+              </div>
+              <p><strong>Recommendation:</strong> {riskInfo.recommendation}</p>
+            </>
+          ) : (!isAnalyzing && <div>Move or zoom map to calculate risk.</div>)}
+        </div>
+
+        <div className="data-source">
+          <p>Data: OpenAQ, sample clinics</p>
         </div>
       </div>
-      <div className="map-container" ref={mapDiv}></div>
+
+      <div className="map-container" ref={mapDiv} />
     </div>
   )
 }
