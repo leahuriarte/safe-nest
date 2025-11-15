@@ -1,19 +1,5 @@
 import { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import { Box, Button, TextField, Typography, List, ListItem, ListItemText } from "@mui/material";
-
-import L from "leaflet";
-import iconUrl from "leaflet/dist/images/marker-icon.png";
-import shadowUrl from "leaflet/dist/images/marker-shadow.png";
-
-let DefaultIcon = L.icon({
-  iconUrl: iconUrl,
-  shadowUrl: shadowUrl,
-  iconAnchor: [12, 41],
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 // Dummy clinic data
 const dummyClinics = [
@@ -29,7 +15,7 @@ interface Comment {
 }
 
 export default function CommunityExperiences() {
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -42,7 +28,7 @@ export default function CommunityExperiences() {
     }
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserLocation([position.coords.latitude, position.coords.longitude]);
+        setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
       },
       () => alert("Unable to retrieve your location")
     );
@@ -65,6 +51,10 @@ export default function CommunityExperiences() {
     setNewComment("");
   };
 
+  // Generate simple Google Maps embed URL
+  const mapCenter = userLocation || { lat: 37.7749, lng: -122.4194 };
+  const mapUrl = `https://maps.google.com/maps?q=${mapCenter.lat},${mapCenter.lng}&z=13&output=embed`;
+
   return (
     <Box p={2}>
       <Typography variant="h4">Community Experiences</Typography>
@@ -81,26 +71,30 @@ export default function CommunityExperiences() {
         />
       </Box>
 
-      {/* Map */}
-      <MapContainer
-        center={userLocation || [37.7749, -122.4194]}
-        zoom={13}
-        style={{ height: "400px", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {userLocation && <Marker position={userLocation}><Popup>Your Location</Popup></Marker>}
-        {filteredClinics.map((clinic) => (
-          <Marker key={clinic.id} position={[clinic.lat, clinic.lng]}>
-            <Popup>{clinic.name}</Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      {/* Simple Map */}
+      <Box sx={{ height: "400px", width: "100%", mb: 4 }}>
+        <iframe
+          title="clinic-map"
+          src={mapUrl}
+          style={{ border: 0, width: "100%", height: "100%" }}
+          allowFullScreen
+        ></iframe>
+      </Box>
+
+      {/* Filtered Clinics */}
+      <Box mb={4}>
+        <Typography variant="h6">Clinics Found:</Typography>
+        <List>
+          {filteredClinics.map((clinic) => (
+            <ListItem key={clinic.id}>
+              <ListItemText primary={clinic.name} />
+            </ListItem>
+          ))}
+        </List>
+      </Box>
 
       {/* Comments */}
-      <Box mt={4}>
+      <Box>
         <Typography variant="h5">Comments</Typography>
         <TextField
           fullWidth
@@ -110,7 +104,7 @@ export default function CommunityExperiences() {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         />
-        <Button variant="contained" sx={{ mt: 1 }} onClick={handleAddComment}>
+        <Button variant="contained" sx={{ mt: 1, mb: 2 }} onClick={handleAddComment}>
           Submit
         </Button>
 
