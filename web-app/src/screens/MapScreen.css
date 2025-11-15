@@ -1,37 +1,68 @@
 @import url('https://js.arcgis.com/4.31/@arcgis/core/assets/esri/themes/light/main.css');
 
+/* src/screens/MapScreen.css */
 .map-screen {
   display: flex;
-  height: 100%;
+  height: 100vh;
   width: 100%;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
 .map-controls {
-  width: 300px;
-  background-color: #f8f9fa;
+  width: 320px;
+  background: #f8f9fa;
   padding: 1rem;
+  border-right: 1px solid #e6e9ed;
   overflow-y: auto;
-  border-right: 1px solid #dee2e6;
+  box-sizing: border-box;
 }
 
-.control-panel,
-.info-panel {
-  margin-bottom: 1.5rem;
-}
-
-.control-panel h3,
-.info-panel h3 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  color: #2c3e50;
+.control-panel {
+  margin-bottom: 1rem;
 }
 
 .control-panel label {
   display: flex;
+  gap: 0.5rem;
   align-items: center;
   margin-bottom: 0.5rem;
   cursor: pointer;
 }
+
+.risk-score-panel {
+  background: #fff;
+  border: 1px solid #d6e6fb;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.risk-badge {
+  display: block;
+  padding: 0.5rem;
+  border-radius: 20px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.risk-good { background: #00e400; color: #000; }
+.risk-moderate { background: #ffff00; color: #000; }
+.risk-sensitive { background: #ff7e00; color: #fff; }
+.risk-unhealthy { background: #ff0000; color: #fff; }
+
+.risk-details p { margin: 0.25rem 0; font-size: 0.95rem; color: #2c3e50; }
+
+.calculating { color: #1070ca; font-style: italic; }
+
+.data-source { font-size: 0.85rem; color: #6c757d; margin-top: 0.75rem; }
+
+.map-container {
+  flex: 1;
+  height: 100%;
+}
+
 
 .control-panel input[type="checkbox"] {
   margin-right: 0.5rem;

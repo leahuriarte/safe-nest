@@ -1,472 +1,302 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+// src/screens/MapScreen.tsx
+import { useEffect, useRef, useState } from 'react'
 import Map from '@arcgis/core/Map'
 import MapView from '@arcgis/core/views/MapView'
-import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
-import Graphic from '@arcgis/core/Graphic'
 import Point from '@arcgis/core/geometry/Point'
-import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
+import Graphic from '@arcgis/core/Graphic'
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer'
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer'
-import Extent from '@arcgis/core/geometry/Extent'
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol'
+import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
 
-// LA County boundaries for spatial filtering (performance optimization)
-const LA_EXTENT = {
-  xmin: -118.9448,
-  ymin: 33.7037,
-  xmax: -117.6462,
-  ymax: 34.8233,
-  spatialReference: { wkid: 4326 }
-}
-
-// Risk calculation interface
-interface RiskScore {
+type RiskInfo = {
   overall: number
-  aqiLevel: string
-  nearestClinicDistance: number
+  aqiLabel: string
   recommendation: string
 }
 
 export default function MapScreen() {
-  const mapDiv = useRef<HTMLDivElement>(null)
+  const mapDiv = useRef<HTMLDivElement | null>(null)
   const [view, setView] = useState<MapView | null>(null)
-  const [showPollution, setShowPollution] = useState(true)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [riskInfo, setRiskInfo] = useState<RiskInfo | null>(null)
   const [showClinics, setShowClinics] = useState(true)
   const [showRiskLayer, setShowRiskLayer] = useState(true)
-  const [riskScore, setRiskScore] = useState<RiskScore | null>(null)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+  // Read API key from env
+  const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
 
   useEffect(() => {
+    // safety: require API key
+    if (!apiKey) {
+      console.error('ArcGIS API key not found. Set VITE_ARCGIS_API_KEY in your .env file.')
+      return
+    }
+
+    // set the API key *before* creating Map/MapView
+    esriConfig.apiKey = apiKey
+
     if (!mapDiv.current) return
 
-    // Create the map
     const map = new Map({
-      basemap: 'topo-vector'
+      // basemap style from ArcGIS Online. With esriConfig.apiKey this should resolve.
+      basemap: 'arcgis/topographic'
     })
 
-    // Create the view
     const mapView = new MapView({
       container: mapDiv.current,
-      map: map,
-      center: [-118.2437, 34.0522], // Los Angeles coordinates
+      map,
+      center: [-118.2437, 34.0522],
       zoom: 11
     })
 
-    // Add graphics layers
+    // Layers
     const clinicsLayer = new GraphicsLayer({
       id: 'clinics',
-      title: 'Health Clinics'
+      title: 'Clinics'
     })
 
-    const pollutionLayer = new GraphicsLayer({
-      id: 'pollution',
-      title: 'Pollution Zones'
+    const riskLayer = new GraphicsLayer({
+      id: 'risk',
+      title: 'Risk visualization'
     })
 
-    // ========== REAL ARCGIS LIVING ATLAS LAYERS (VERIFIED) ==========
-    // ⚡ PERFORMANCE: Spatial filters limit data to LA County only
+    map.addMany([clinicsLayer, riskLayer])
 
-    // OpenAQ Recent Conditions in Air Quality (PM2.5)
-    // Updates hourly with 3,500+ monitoring stations worldwide
-    // Source: ArcGIS Living Atlas - Item ID: 8dcf5d4e124f480fa8c529fbe25ba04e
-    const openAQLayer = new FeatureLayer({
-      portalItem: {
-        id: '8dcf5d4e124f480fa8c529fbe25ba04e'
-      },
-      title: 'OpenAQ Air Quality (PM2.5)',
-      visible: true,
-      opacity: 0.8,
-      // ⚡ CRITICAL PERFORMANCE FIX: Only load data within LA County
-      definitionExpression: `latitude >= ${LA_EXTENT.ymin} AND latitude <= ${LA_EXTENT.ymax} AND longitude >= ${LA_EXTENT.xmin} AND longitude <= ${LA_EXTENT.xmax}`,
-      outFields: ['*'],
-      maxScale: 0,
-      minScale: 0
-    })
-
-    // AirNow AQI Forecast (EPA)
-    // Real-time AQI forecast contours for O3 and PM2.5
-    // Source: ArcGIS Living Atlas / US EPA
-    const airNowLayer = new FeatureLayer({
-      url: 'https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/AirNowAQIForecast/FeatureServer/0',
-      title: 'EPA AirNow AQI Forecast',
-      visible: true,
-      opacity: 0.7,
-      // ⚡ CRITICAL PERFORMANCE FIX: Spatial filter to LA County
-      definitionExpression: '1=1', // Note: This layer uses different field names
-      outFields: ['*']
-    })
-
-    // Unified Risk Analysis Layer - merges AQI + clinic proximity
-    const riskAnalysisLayer = new GraphicsLayer({
-      id: 'risk-analysis',
-      title: 'Unified Risk Prediction',
-      opacity: 0.6
-    })
-
-    map.addMany([airNowLayer, openAQLayer, riskAnalysisLayer, pollutionLayer, clinicsLayer])
-
-    console.log('✅ OPTIMIZED: Layers filtered to LA County for fast performance')
-    console.log('✅ Unified Risk Analysis Layer added for merged predictions')
-
-    // Add sample clinic locations
+    // Sample clinic points (replace with real clinic dataset as needed)
     const sampleClinics = [
       { name: 'Community Health Center', lat: 34.0522, lon: -118.2437 },
       { name: 'Planned Parenthood Downtown', lat: 34.0489, lon: -118.2587 },
-      { name: 'Womens Health Clinic', lat: 34.0608, lon: -118.2347 },
-      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 },
+      { name: 'Women\'s Health Clinic', lat: 34.0608, lon: -118.2347 },
+      { name: 'Family Planning Center', lat: 34.0445, lon: -118.2561 }
     ]
 
-    sampleClinics.forEach(clinic => {
-      const point = new Point({
-        longitude: clinic.lon,
-        latitude: clinic.lat
-      })
-
-      const markerSymbol = new SimpleMarkerSymbol({
-        color: [0, 122, 194],
-        size: '12px',
-        outline: {
-          color: [255, 255, 255],
-          width: 2
-        }
-      })
-
-      const graphic = new Graphic({
-        geometry: point,
-        symbol: markerSymbol,
-        attributes: {
-          name: clinic.name,
-          type: 'clinic'
-        },
+    sampleClinics.forEach((c) => {
+      const g = new Graphic({
+        geometry: new Point({ longitude: c.lon, latitude: c.lat }),
+        symbol: new SimpleMarkerSymbol({
+          color: [0, 122, 194],
+          size: 12,
+          outline: { color: [255, 255, 255], width: 2 }
+        }),
+        attributes: { name: c.name, type: 'clinic' },
         popupTemplate: {
           title: '{name}',
           content: 'Health services available'
         }
       })
-
-      clinicsLayer.add(graphic)
+      clinicsLayer.add(g)
     })
 
-    // Add sample pollution zones (simplified for demo)
-    const pollutionZones = [
-      { lat: 34.0580, lon: -118.2550, level: 'high' },
-      { lat: 34.0450, lon: -118.2400, level: 'medium' },
-      { lat: 34.0620, lon: -118.2380, level: 'low' },
-    ]
-
-    pollutionZones.forEach(zone => {
-      const point = new Point({
-        longitude: zone.lon,
-        latitude: zone.lat
-      })
-
-      const color = zone.level === 'high'
-        ? [255, 0, 0, 0.3] as [number, number, number, number]
-        : zone.level === 'medium'
-        ? [255, 165, 0, 0.3] as [number, number, number, number]
-        : [255, 255, 0, 0.3] as [number, number, number, number]
-
-      // ✅ FIXED: Proper TypeScript types (removed @ts-ignore)
-      const circleSymbol = new SimpleMarkerSymbol({
-        color: color,
-        size: 40,
-        outline: {
-          color: [255, 255, 255, 0.5],
-          width: 1
-        }
-      })
-
-      const graphic = new Graphic({
-        geometry: point,
-        symbol: circleSymbol,
-        attributes: {
-          level: zone.level
-        },
-        popupTemplate: {
-          title: 'Pollution Zone',
-          content: `Pollution Level: ${zone.level}`
-        }
-      })
-
-      pollutionLayer.add(graphic)
+    // OpenAQ FeatureLayer from ArcGIS Living Atlas
+    const openAQLayer = new FeatureLayer({
+      portalItem: { id: '8dcf5d4e124f480fa8c529fbe25ba04e' }, // OpenAQ PM2.5
+      outFields: ['*'],
+      title: 'OpenAQ PM2.5',
+      // don't auto-scale visibility here; we'll query the features in view extent
     })
+
+    map.add(openAQLayer)
 
     setView(mapView)
 
-    // ========== UNIFIED RISK ANALYSIS: Merge layers for prediction ==========
-    // This function combines AQI data + clinic proximity into a single risk layer
-    const performRiskAnalysis = async () => {
+    // risk calculation
+    let analysisTimeout: number | undefined
+
+    async function performRiskAnalysis() {
       if (!mapView || isAnalyzing) return
+      setIsAnalyzing(true)
+      riskLayer.removeAll()
 
       try {
-        setIsAnalyzing(true)
-        riskAnalysisLayer.removeAll()
+        // build a query for openAQ features in current extent only (performance)
+        const q = openAQLayer.createQuery()
+        q.geometry = mapView.extent
+        q.returnGeometry = true
+        q.outFields = ['*']
 
-        const extent = mapView.extent
+        const results = await openAQLayer.queryFeatures(q)
 
-        // Query AQI data within current view (extent-based for performance)
-        const aqiQuery = openAQLayer.createQuery()
-        aqiQuery.geometry = extent
-        aqiQuery.spatialRelationship = 'intersects'
-        aqiQuery.outFields = ['*']
-        aqiQuery.returnGeometry = true
-
-        const aqiResults = await openAQLayer.queryFeatures(aqiQuery)
-
-        if (aqiResults.features.length === 0) {
-          console.log('No AQI data in current view')
+        if (!results || results.features.length === 0) {
+          setRiskInfo(null)
           setIsAnalyzing(false)
           return
         }
 
-        // Calculate risk for each AQI station
-        const clinicGraphics = clinicsLayer.graphics.toArray()
+        const clinics = clinicsLayer.graphics.toArray()
+        let sumPM25 = 0
 
-        aqiResults.features.forEach(aqiFeature => {
-          const aqiPoint = aqiFeature.geometry as Point
-          const pm25 = aqiFeature.attributes.pm25 || aqiFeature.attributes.value || 0
+        for (const feat of results.features) {
+          const geom = feat.geometry as Point
+          // best-effort fields for PM2.5 (OpenAQ fields vary)
+          const pm25 =
+            (feat.attributes && (feat.attributes.pm25 || feat.attributes.pm25_mean || feat.attributes.value || feat.attributes.measurement)) ??
+            0
 
-          // Calculate AQI level
-          let aqiLevel = 'Good'
-          let riskColor: [number, number, number, number] = [0, 228, 0, 0.5]
+          sumPM25 += Number(pm25) || 0
 
-          if (pm25 > 150) {
-            aqiLevel = 'Unhealthy'
-            riskColor = [255, 0, 0, 0.7]
-          } else if (pm25 > 55) {
-            aqiLevel = 'Moderate'
-            riskColor = [255, 255, 0, 0.6]
-          } else if (pm25 > 35) {
-            aqiLevel = 'Sensitive Groups'
-            riskColor = [255, 126, 0, 0.6]
+          // compute distance to nearest clinic (km), rough conversion using lat/lon degrees -> km
+          let nearestKm = Infinity
+          for (const cg of clinics) {
+            const cp = cg.geometry as Point
+            const dx = (geom.longitude - cp.longitude)
+            const dy = (geom.latitude - cp.latitude)
+            const distKm = Math.sqrt(dx * dx + dy * dy) * 111 // rough converter
+            if (distKm < nearestKm) nearestKm = distKm
           }
 
-          // Find nearest clinic (simple distance calculation)
-          let nearestDistance = Infinity
-          clinicGraphics.forEach(clinicGraphic => {
-            const clinicPoint = clinicGraphic.geometry as Point
-            const dx = aqiPoint.longitude - clinicPoint.longitude
-            const dy = aqiPoint.latitude - clinicPoint.latitude
-            const distance = Math.sqrt(dx * dx + dy * dy) * 111 // rough km conversion
-            if (distance < nearestDistance) {
-              nearestDistance = distance
-            }
-          })
+          // score components
+          let score = 0
+          const pm = Number(pm25) || 0
+          if (pm > 150) score += 60
+          else if (pm > 55) score += 40
+          else if (pm > 35) score += 20
+          else score += 5
 
-          // Calculate combined risk score (0-100)
-          let riskScore = 0
-          if (pm25 > 150) riskScore += 60
-          else if (pm25 > 55) riskScore += 40
-          else if (pm25 > 35) riskScore += 20
+          if (nearestKm > 5) score += 30
+          else if (nearestKm > 2) score += 15
 
-          if (nearestDistance > 5) riskScore += 30
-          else if (nearestDistance > 2) riskScore += 15
+          score = Math.min(100, Math.round(score))
 
-          // Create risk visualization graphic
-          const riskSymbol = new SimpleMarkerSymbol({
-            color: riskColor,
-            size: Math.max(15, Math.min(40, riskScore / 2)),
-            outline: {
-              color: [255, 255, 255, 0.8],
-              width: 2
-            }
-          })
+          // choose color by score
+          function colorForScore(s: number) {
+            if (s >= 75) return 'rgba(126,0,35,0.55)' // hazardous-like
+            if (s >= 50) return 'rgba(255,0,0,0.45)' // unhealthy
+            if (s >= 30) return 'rgba(255,126,0,0.40)' // sensitive
+            if (s >= 15) return 'rgba(255,255,0,0.35)' // moderate
+            return 'rgba(0,228,0,0.30)' // good
+          }
 
-          const riskGraphic = new Graphic({
-            geometry: aqiPoint,
-            symbol: riskSymbol,
+          // draw a filled circle (SimpleFillSymbol on a small polygon or a large marker) — using a translucent fill
+          const circle = new Graphic({
+            geometry: new Point({ longitude: geom.longitude, latitude: geom.latitude }), // point center
+            symbol: new SimpleMarkerSymbol({
+              style: 'circle',
+              color: colorForScore(score),
+              size: Math.max(18, Math.min(60, Math.round(score / 2) + 18)),
+              outline: { color: [255, 255, 255, 0.9], width: 1 }
+            }),
             attributes: {
-              pm25: pm25,
-              aqiLevel: aqiLevel,
-              riskScore: riskScore,
-              nearestClinic: nearestDistance.toFixed(2)
+              pm25: pm,
+              score,
+              nearestClinicKm: Number(nearestKm.toFixed(2))
             },
             popupTemplate: {
-              title: 'Health Risk Analysis',
-              content: `
-                <b>Air Quality:</b> ${aqiLevel} (PM2.5: ${pm25.toFixed(1)})<br>
-                <b>Risk Score:</b> ${riskScore}/100<br>
-                <b>Nearest Clinic:</b> ${nearestDistance.toFixed(2)} km
-              `
+              title: 'Health Risk',
+              content:
+                `<b>PM2.5:</b> ${pm.toFixed ? pm.toFixed(1) : pm} <br>` +
+                `<b>Risk score:</b> ${score}/100 <br>` +
+                `<b>Nearest clinic:</b> ${Number(nearestKm).toFixed(2)} km`
             }
           })
 
-          riskAnalysisLayer.add(riskGraphic)
-        })
-
-        // Calculate overall area risk score
-        const avgPM25 = aqiResults.features.reduce((sum, f) =>
-          sum + (f.attributes.pm25 || f.attributes.value || 0), 0) / aqiResults.features.length
-
-        let overallRisk = 0
-        let recommendation = 'Air quality is good. Safe for outdoor activities.'
-
-        if (avgPM25 > 150) {
-          overallRisk = 90
-          recommendation = 'Unhealthy air quality. Limit outdoor exposure. Clinic access critical.'
-        } else if (avgPM25 > 55) {
-          overallRisk = 60
-          recommendation = 'Moderate air quality. Sensitive groups should limit prolonged outdoor activities.'
-        } else if (avgPM25 > 35) {
-          overallRisk = 40
-          recommendation = 'Air quality acceptable but may concern sensitive individuals.'
-        } else {
-          overallRisk = 10
+          riskLayer.add(circle)
         }
 
-        setRiskScore({
-          overall: overallRisk,
-          aqiLevel: avgPM25 > 150 ? 'Unhealthy' : avgPM25 > 55 ? 'Moderate' : avgPM25 > 35 ? 'Sensitive' : 'Good',
-          nearestClinicDistance: Math.min(...aqiResults.features.map((_, i) => {
-            const aqiPoint = aqiResults.features[i].geometry as Point
-            return clinicGraphics.reduce((min, cg) => {
-              const cp = cg.geometry as Point
-              const d = Math.sqrt(Math.pow(aqiPoint.longitude - cp.longitude, 2) +
-                                Math.pow(aqiPoint.latitude - cp.latitude, 2)) * 111
-              return Math.min(min, d)
-            }, Infinity)
-          })),
-          recommendation
-        })
+        const avgPM25 = sumPM25 / results.features.length
+        let overall = 10
+        let rec = 'Air quality is good.'
+        if (avgPM25 > 150) {
+          overall = 90
+          rec = 'Unhealthy — limit outdoor exposure. Seek clinic if symptoms.'
+        } else if (avgPM25 > 55) {
+          overall = 60
+          rec = 'Moderate — sensitive groups should limit prolonged outdoor activity.'
+        } else if (avgPM25 > 35) {
+          overall = 40
+          rec = 'Acceptable but could affect sensitive groups.'
+        }
 
-        console.log(`✅ Risk analysis complete: ${aqiResults.features.length} stations analyzed`)
-      } catch (error) {
-        console.error('Risk analysis error:', error)
+        setRiskInfo({
+          overall,
+          aqiLabel: avgPM25 > 150 ? 'Unhealthy' : avgPM25 > 55 ? 'Moderate' : avgPM25 > 35 ? 'Sensitive' : 'Good',
+          recommendation: rec
+        })
+      } catch (err) {
+        console.error('Risk analysis error', err)
       } finally {
         setIsAnalyzing(false)
       }
     }
 
-    // Auto-run analysis when view stabilizes (debounced)
-    let analysisTimeout: NodeJS.Timeout
+    // watch for view stationary and debounce analysis
     reactiveUtils.watch(
       () => mapView.stationary,
       (stationary) => {
         if (stationary) {
-          clearTimeout(analysisTimeout)
-          analysisTimeout = setTimeout(() => {
-            performRiskAnalysis()
-          }, 500) // 500ms debounce
+          if (analysisTimeout) window.clearTimeout(analysisTimeout)
+          analysisTimeout = window.setTimeout(() => performRiskAnalysis(), 500)
         }
       }
     )
 
-    // Initial analysis
+    // initial analysis after the view is ready
     mapView.when(() => {
-      setTimeout(() => performRiskAnalysis(), 1000)
+      setTimeout(() => performRiskAnalysis(), 800)
     })
 
-    // Cleanup
+    // cleanup
     return () => {
-      clearTimeout(analysisTimeout)
+      if (analysisTimeout) window.clearTimeout(analysisTimeout)
       mapView.destroy()
     }
-  }, [])
+  }, [apiKey]) // re-run only when API key changes
 
-  // Toggle layers
+  // Toggle layers visibility
   useEffect(() => {
     if (!view || !view.map) return
-    const pollutionLayer = view.map.findLayerById('pollution')
-    if (pollutionLayer) {
-      pollutionLayer.visible = showPollution
-    }
-  }, [showPollution, view])
-
-  useEffect(() => {
-    if (!view || !view.map) return
-    const clinicsLayer = view.map.findLayerById('clinics')
-    if (clinicsLayer) {
-      clinicsLayer.visible = showClinics
-    }
-  }, [showClinics, view])
-
-  useEffect(() => {
-    if (!view || !view.map) return
-    const riskLayer = view.map.findLayerById('risk-analysis')
-    if (riskLayer) {
-      riskLayer.visible = showRiskLayer
-    }
+    const riskL = view.map.findLayerById('risk') as GraphicsLayer | undefined
+    if (riskL) riskL.visible = showRiskLayer
   }, [showRiskLayer, view])
+
+  useEffect(() => {
+    if (!view || !view.map) return
+    const clinicsL = view.map.findLayerById('clinics') as GraphicsLayer | undefined
+    if (clinicsL) clinicsL.visible = showClinics
+  }, [showClinics, view])
 
   return (
     <div className="map-screen">
       <div className="map-controls">
-        {/* Unified Risk Score Panel */}
-        {riskScore && (
-          <div className="risk-score-panel">
-            <h3>Unified Risk Analysis</h3>
-            <div className={`risk-badge risk-${riskScore.aqiLevel.toLowerCase()}-risk`}>
-              Risk Score: {riskScore.overall}/100
-            </div>
-            <div className="risk-details">
-              <p><strong>Air Quality:</strong> {riskScore.aqiLevel}</p>
-              <p><strong>Nearest Clinic:</strong> {riskScore.nearestClinicDistance.toFixed(2)} km</p>
-              <p><strong>Recommendation:</strong> {riskScore.recommendation}</p>
-            </div>
-            <div className="data-source">
-              <p>Data sources: EPA AirNow, OpenAQ</p>
-              <p>Analysis: Real-time merged prediction</p>
-            </div>
-          </div>
-        )}
-
-        {isAnalyzing && !riskScore && (
-          <div className="risk-score-panel">
-            <div className="calculating">Analyzing air quality and clinic proximity...</div>
-          </div>
-        )}
+        <h3>SafeNest — Health Risk Map</h3>
 
         <div className="control-panel">
-          <h3>Map Layers</h3>
           <label>
-            <input
-              type="checkbox"
-              checked={showRiskLayer}
-              onChange={(e) => setShowRiskLayer(e.target.checked)}
-            />
-            🎯 Unified Risk Analysis
+            <input type="checkbox" checked={showRiskLayer} onChange={(e) => setShowRiskLayer(e.target.checked)} />
+            Unified Risk Visualization
           </label>
           <label>
-            <input
-              type="checkbox"
-              checked={showClinics}
-              onChange={(e) => setShowClinics(e.target.checked)}
-            />
-            Health Clinics
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={showPollution}
-              onChange={(e) => setShowPollution(e.target.checked)}
-            />
-            Sample Pollution Zones
+            <input type="checkbox" checked={showClinics} onChange={(e) => setShowClinics(e.target.checked)} />
+            Clinic locations
           </label>
         </div>
 
-        <div className="info-panel">
-          <h3>EPA AQI Standards</h3>
-          <div className="legend">
-            <div className="legend-item">
-              <span className="legend-color aqi-good"></span>
-              <span>Good (0-50)</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color aqi-moderate"></span>
-              <span>Moderate (51-100)</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color aqi-sensitive"></span>
-              <span>Sensitive Groups (101-150)</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-color aqi-unhealthy"></span>
-              <span>Unhealthy (151+)</span>
-            </div>
-          </div>
+        <div className="risk-score-panel">
+          <h4>Unified Risk</h4>
+          {isAnalyzing && <div className="calculating">Analyzing air quality and clinic proximity...</div>}
+          {riskInfo ? (
+            <>
+              <div className={`risk-badge risk-${riskInfo.aqiLabel.toLowerCase()}`}>
+                {riskInfo.overall}/100 — {riskInfo.aqiLabel}
+              </div>
+              <div className="risk-details">
+                <p><strong>Recommendation:</strong> {riskInfo.recommendation}</p>
+              </div>
+            </>
+          ) : !isAnalyzing ? (
+            <div className="risk-details">Move/zoom the map to calculate risk.</div>
+          ) : null}
+        </div>
+
+        <div className="data-source">
+          <p>Data: OpenAQ (Living Atlas), sample clinics</p>
         </div>
       </div>
-      <div className="map-container" ref={mapDiv}></div>
+
+      <div className="map-container" ref={mapDiv} />
     </div>
   )
 }
