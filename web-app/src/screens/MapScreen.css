@@ -84,7 +84,7 @@
 .risk-details p {
   margin: 0.5rem 0;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: #55265bd4;
 }
 
 .recommendation {
@@ -94,7 +94,7 @@
   border-radius: 4px;
   margin-top: 1rem;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: #55265bd4;
 }
 
 .calculating { color: #1070ca; font-style: italic; }
@@ -198,7 +198,7 @@
 .risk-score-panel h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1rem;
-  color: #d196da;
+  color: #55265bd4;
 }
 
 .risk-badge {
@@ -254,7 +254,7 @@
 
 .risk-details p {
   margin: 0.5rem 0;
-  color: #d196da;
+  color: #55265bd4;
 }
 
 .calculating {
