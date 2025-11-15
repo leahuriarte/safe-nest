@@ -10,7 +10,7 @@
 }
 
 .chatbot-header {
-  background: #007acc;
+  background: #ac6cb6;
   color: #fff;
   padding: 0.8rem;
   font-weight: bold;
@@ -29,11 +29,11 @@
 
 .message { margin-bottom: 0.5rem; padding: 0.5rem 0.7rem; border-radius: 12px; max-width: 80%; }
 .message.bot { background: #e0f0ff; align-self: flex-start; }
-.message.user { background: #007acc; color: white; align-self: flex-end; }
+.message.user { background: #ac6cb6; color: white; align-self: flex-end; }
 
 .chatbot-input { display: flex; padding: 0.5rem; border-top: 1px solid #ddd; }
 .chatbot-input input { flex: 1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc; }
-.chatbot-input button { margin-left: 0.5rem; padding: 0.5rem 0.8rem; background: #007acc; color: white; border: none; border-radius: 8px; cursor: pointer; }
+.chatbot-input button { margin-left: 0.5rem; padding: 0.5rem 0.8rem; background: #ac6cb6; color: white; border: none; border-radius: 8px; cursor: pointer; }
 
 .resize-handle {
   position: absolute;
@@ -42,6 +42,6 @@
   bottom: 0;
   right: 0;
   cursor: se-resize;
-  background: #007acc;
+  background: #ac6cb6;
   border-radius: 4px;
 }
