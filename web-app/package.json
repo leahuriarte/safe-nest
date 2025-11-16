@@ -11,14 +11,18 @@
   },
   "dependencies": {
     "@arcgis/core": "^4.34.8",
+    "@google/generative-ai": "^0.24.1",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@react-google-maps/api": "^2.20.7",
     "leaflet": "^1.9.4",
+    "pdfjs-dist": "^5.4.394",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^5.0.0",
-    "react-rnd": "^10.5.2"
+    "react-markdown": "^10.1.0",
+    "react-rnd": "^10.5.2",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

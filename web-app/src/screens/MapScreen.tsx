@@ -34,9 +34,8 @@ export default function MapScreen() {
   const [showPollution, setShowPollution] = useState(true)
   const [showHealthcare, setShowHealthcare] = useState(true)
   const [showEnvironmental, setShowEnvironmental] = useState(true)
-  const [showRiskOverlay, setShowRiskOverlay] = useState(true)
-  const [showClinics, setShowClinics] = useState(true)
-  const [showRiskLayer, setShowRiskLayer] = useState(true)
+  const [showRiskOverlay] = useState(true)
+  const [showClinics] = useState(true)
   const [chatOpen, setChatOpen] = useState(false);
 
   const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
@@ -165,7 +164,7 @@ export default function MapScreen() {
     const environmentalHazardsLayer = new FeatureLayer({
       id: 'environmental',
       title: 'Environmental Hazards',
-      source: sampleHazards.map((hazard, idx) => ({
+      source: sampleHazards.map((hazard, idx) => new Graphic({
         geometry: new Point({
           longitude: hazard.lon,
           latitude: hazard.lat,
@@ -215,7 +214,6 @@ export default function MapScreen() {
       spatialReference: SpatialReference.WGS84,
       renderer: new HeatmapRenderer({
         field: 'riskScore',
-        blurRadius: 15,
         maxDensity: 0.01,
         minDensity: 0,
         colorStops: [
@@ -359,6 +357,7 @@ export default function MapScreen() {
               let nearestPM25 = 0
               for (const aqFeature of aqResults.features) {
                 const aqPoint = aqFeature.geometry as Point
+                if (aqPoint.longitude == null || aqPoint.latitude == null) continue
                 const dist = Math.sqrt(
                   Math.pow(lon - aqPoint.longitude, 2) +
                   Math.pow(lat - aqPoint.latitude, 2)
@@ -381,6 +380,7 @@ export default function MapScreen() {
               let minDist = Infinity
               for (const hcFeature of hcResults.features) {
                 const hcPoint = hcFeature.geometry as Point
+                if (hcPoint.longitude == null || hcPoint.latitude == null) continue
                 const dist = Math.sqrt(
                   Math.pow(lon - hcPoint.longitude, 2) +
                   Math.pow(lat - hcPoint.latitude, 2)
@@ -400,6 +400,7 @@ export default function MapScreen() {
             let hazardProximity = 0
             for (const envFeature of envResults.features) {
               const envPoint = envFeature.geometry as Point
+              if (envPoint.longitude == null || envPoint.latitude == null) continue
               const dist = Math.sqrt(
                 Math.pow(lon - envPoint.longitude, 2) +
                 Math.pow(lat - envPoint.latitude, 2)

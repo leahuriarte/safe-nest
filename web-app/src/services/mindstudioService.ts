@@ -20,14 +20,6 @@ interface MindStudioResponse {
   error?: string
 }
 
-interface ClinicEvaluation {
-  clinicName: string
-  rating?: number
-  strengths?: string[]
-  concerns?: string[]
-  recommendations?: string[]
-}
-
 class MindStudioService {
   private config: MindStudioConfig
   private conversationHistory: MindStudioMessage[] = []

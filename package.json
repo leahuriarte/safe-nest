@@ -1,4 +1,12 @@
 {
+  "scripts": {
+    "dev": "concurrently --kill-others \"npm --prefix server run dev\" \"npm --prefix web-app run dev\"",
+    "build": "npm --prefix web-app run build",
+    "install:all": "npm install && npm --prefix server install && npm --prefix web-app install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
