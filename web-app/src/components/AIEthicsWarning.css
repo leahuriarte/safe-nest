@@ -1,0 +1,118 @@
+.ai-ethics-warning {
+  background: linear-gradient(135deg, #f5f0e8, #e8dcc0);
+  border: 2px solid #d4b896;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(212, 184, 150, 0.2);
+}
+
+.warning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.warning-header:hover {
+  background: rgba(212, 184, 150, 0.1);
+}
+
+.warning-title {
+  font-weight: 600;
+  color: #8b6914;
+  font-size: 0.95rem;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #8b6914;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.expand-button:hover {
+  background: rgba(212, 184, 150, 0.2);
+}
+
+.warning-summary {
+  padding: 0 1rem 0.75rem 1rem;
+  color: #8b6914;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.warning-details {
+  border-top: 1px solid #d4b896;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.warning-details ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #6b5200;
+}
+
+.warning-details li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.warning-details li:last-child {
+  margin-bottom: 0;
+}
+
+/* Variant-specific styling */
+.ai-ethics-warning.medical {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-color: #dc3545;
+}
+
+.ai-ethics-warning.medical .warning-title,
+.ai-ethics-warning.medical .warning-summary,
+.ai-ethics-warning.medical .expand-button {
+  color: #721c24;
+}
+
+.ai-ethics-warning.medical .warning-details {
+  border-top-color: #dc3545;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.ai-ethics-warning.medical .warning-details ul {
+  color: #5a1a1a;
+}
+
+.ai-ethics-warning.map {
+  background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+  border-color: #17a2b8;
+}
+
+.ai-ethics-warning.map .warning-title,
+.ai-ethics-warning.map .warning-summary,
+.ai-ethics-warning.map .expand-button {
+  color: #0c5460;
+}
+
+.ai-ethics-warning.map .warning-details {
+  border-top-color: #17a2b8;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.ai-ethics-warning.map .warning-details ul {
+  color: #0a4049;
+}

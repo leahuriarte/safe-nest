@@ -14,6 +14,7 @@ import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
 import './MapScreen.css'
 import ChatbotModal from "../components/ChatbotModal"
+import AIEthicsWarning from '../components/AIEthicsWarning'
 
 type RiskInfo = {
   overall: number
@@ -521,6 +522,7 @@ export default function MapScreen() {
   
     <div className="map-screen">
       <div className="map-controls">
+        <AIEthicsWarning variant="map" />
         <h3>SafeNest — Risk Maps for Pregnant People</h3>
 
         <div className="control-panel">

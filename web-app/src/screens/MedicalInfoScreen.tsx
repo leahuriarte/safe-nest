@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./MedicalInfoScreen.css";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import AIEthicsWarning from '../components/AIEthicsWarning';
 import {
   initializeGemini,
   createDocumentChunks,
@@ -34,11 +35,19 @@ export default function DocumentChatScreen() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
 
   // Initialize Gemini on mount
   useEffect(() => {
     initializeGemini();
   }, []);
+
+  // Scroll to bottom when new messages are added
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [chatMessages, isProcessing]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -144,149 +153,162 @@ export default function DocumentChatScreen() {
 
   return (
     <div className="document-helper-container">
-      {/* LEFT PANEL - DOCUMENTS */}
-      <div className="documents-panel">
-        <h2 className="documents-header">Documents</h2>
+      <AIEthicsWarning variant="medical" />
+      <div className="document-helper-main">
+        {/* LEFT PANEL - DOCUMENTS */}
+        <div className="documents-panel">
+          <h2 className="documents-header">Documents</h2>
 
-        <div className="file-upload-section">
-          <label className="file-upload-label">
-            <span>📄</span>
-            <span>{isProcessing ? "Processing..." : "Upload Documents"}</span>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="file-upload-input"
-              accept=".pdf,.txt"
-              disabled={isProcessing}
-            />
-          </label>
-        </div>
-
-        {uploadedDocs.length > 0 && (
-          <ul className="documents-list">
-            {uploadedDocs.map((doc) => (
-              <li
-                key={doc.id}
-                onClick={() => setSelectedDoc(doc)}
-                className={`document-item ${selectedDoc?.id === doc.id ? "selected" : ""}`}
-              >
-                <div className="document-item-name">
-                  📄 {doc.name}
-                  {doc.chunks && (
-                    <span className="chunk-count"> ({doc.chunks.length} chunks)</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {selectedDoc ? (
-          selectedDoc.file.type === "application/pdf" ? (
-            <iframe src={selectedDoc.url} title={selectedDoc.name} className="document-preview" />
-          ) : (
-            <div className="text-preview">
-              <p>Text file: {selectedDoc.name}</p>
-              <p>Processed into {selectedDoc.chunks?.length} chunks</p>
-            </div>
-          )
-        ) : (
-          <div className="empty-preview">
-            <div className="empty-preview-icon">📄</div>
-            <div className="empty-preview-text">
-              {uploadedDocs.length === 0
-                ? "Upload documents to get started"
-                : "Select a document to preview"}
-            </div>
+          <div className="file-upload-section">
+            <label className="file-upload-label">
+              <span>📄</span>
+              <span>{isProcessing ? "Processing..." : "Upload Documents"}</span>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="file-upload-input"
+                accept=".pdf,.txt"
+                disabled={isProcessing}
+              />
+            </label>
           </div>
-        )}
-      </div>
 
-      {/* RIGHT PANEL - CHAT */}
-      <div className="chat-panel">
-        <h2 className="chat-header">Ask Questions</h2>
-
-        <div className="chat-messages">
-          {chatMessages.length === 0 ? (
-            <div className="empty-chat">
-              <div className="empty-chat-icon">💬</div>
-              <div className="empty-chat-text">
-                Upload a document and ask questions about it
-              </div>
-            </div>
-          ) : (
-            chatMessages.map((msg) => (
-              <div key={msg.id} className={`chat-message ${msg.sender.toLowerCase()}`}>
-                <div className={`message-bubble ${msg.sender.toLowerCase()}`}>
-                  <div className="message-text">
-                    {msg.sender === 'Agent' ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          // Custom styling for markdown elements
-                          h1: ({ children }) => <h1 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h1>,
-                          h2: ({ children }) => <h2 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h2>,
-                          h3: ({ children }) => <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h3>,
-                          p: ({ children }) => <p style={{ marginBottom: '0.75rem', lineHeight: '1.6' }}>{children}</p>,
-                          ul: ({ children }) => <ul style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem' }}>{children}</ul>,
-                          ol: ({ children }) => <ol style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem' }}>{children}</ol>,
-                          li: ({ children }) => <li style={{ marginBottom: '0.25rem' }}>{children}</li>,
-                          blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #d196da', paddingLeft: '1rem', margin: '0.75rem 0', fontStyle: 'italic', color: '#6c757d' }}>{children}</blockquote>,
-                          code: ({ children }) => <code style={{ backgroundColor: '#f8f9fa', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.9rem' }}>{children}</code>,
-                          strong: ({ children }) => <strong style={{ color: '#2c3e50' }}>{children}</strong>,
-                          em: ({ children }) => <em style={{ color: '#6c757d' }}>{children}</em>
-                        }}
-                      >
-                        {msg.text}
-                      </ReactMarkdown>
-                    ) : (
-                      msg.text
+          {uploadedDocs.length > 0 && (
+            <ul className="documents-list">
+              {uploadedDocs.map((doc) => (
+                <li
+                  key={doc.id}
+                  onClick={() => setSelectedDoc(doc)}
+                  className={`document-item ${selectedDoc?.id === doc.id ? "selected" : ""}`}
+                >
+                  <div className="document-item-name">
+                    📄 {doc.name}
+                    {doc.chunks && (
+                      <span className="chunk-count"> ({doc.chunks.length} chunks)</span>
                     )}
                   </div>
-                  {msg.sources && msg.sources.length > 0 && (
-                    <div className="message-sources">
-                      <div className="sources-header">📚 Sources:</div>
-                      {msg.sources.map((source, idx) => (
-                        <div key={idx} className="source-item">
-                          <strong>
-                            {source.documentName} (Page {source.pageNumber})
-                          </strong>
-                          <div className="source-text">{source.text}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
+                </li>
+              ))}
+            </ul>
           )}
-          {isProcessing && (
-            <div className="chat-message agent">
-              <div className="message-bubble agent">
-                <div className="typing-indicator">Thinking...</div>
+
+          {selectedDoc ? (
+            selectedDoc.file.type === "application/pdf" ? (
+              <iframe src={selectedDoc.url} title={selectedDoc.name} className="document-preview" />
+            ) : (
+              <div className="text-preview">
+                <p>Text file: {selectedDoc.name}</p>
+                <p>Processed into {selectedDoc.chunks?.length} chunks</p>
+              </div>
+            )
+          ) : (
+            <div className="empty-preview">
+              <div className="empty-preview-icon">📄</div>
+              <div className="empty-preview-text">
+                {uploadedDocs.length === 0
+                  ? "Upload documents to get started"
+                  : "Select a document to preview"}
               </div>
             </div>
           )}
         </div>
 
-        <div className="chat-input-section">
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={onKeyPress}
-            placeholder="Ask a question about your documents..."
-            className="chat-input"
-            disabled={uploadedDocs.length === 0 || isProcessing}
-          />
-          <button
-            onClick={handleSendMessage}
-            className="send-button"
-            disabled={!newMessage.trim() || uploadedDocs.length === 0 || isProcessing}
-            title="Send message"
-          >
-            ➤
-          </button>
+        {/* RIGHT PANEL - CHAT */}
+        <div className="chat-panel">
+          <h2 className="chat-header">Ask Questions</h2>
+
+          <div className="chat-messages" ref={chatMessagesRef}>
+            {chatMessages.length === 0 ? (
+              <div className="empty-chat">
+                <div className="empty-chat-icon">🤱</div>
+                <div className="empty-chat-text">
+                  <div style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600', color: '#d196da' }}>
+                    Welcome to Your Pregnancy Document Helper
+                  </div>
+                  <div style={{ fontSize: '0.95rem', lineHeight: '1.5', color: '#6c757d' }}>
+                    I'm here to help you understand your medical documents in simple, supportive language.
+                    Upload your lab results, ultrasound reports, or other pregnancy-related documents,
+                    and I'll explain what they mean for you and your baby's health.
+                  </div>
+                  <div style={{ marginTop: '1rem', fontSize: '0.9rem', fontStyle: 'italic', color: '#95a5a6' }}>
+                    Upload a document above to get started
+                  </div>
+                </div>
+              </div>
+            ) : (
+              chatMessages.map((msg) => (
+                <div key={msg.id} className={`chat-message ${msg.sender.toLowerCase()}`}>
+                  <div className={`message-bubble ${msg.sender.toLowerCase()}`}>
+                    <div className="message-text">
+                      {msg.sender === 'Agent' ? (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            // Custom styling for markdown elements
+                            h1: ({ children }) => <h1 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h1>,
+                            h2: ({ children }) => <h2 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h2>,
+                            h3: ({ children }) => <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#2c3e50' }}>{children}</h3>,
+                            p: ({ children }) => <p style={{ marginBottom: '0.75rem', lineHeight: '1.6' }}>{children}</p>,
+                            ul: ({ children }) => <ul style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem' }}>{children}</ul>,
+                            ol: ({ children }) => <ol style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem' }}>{children}</ol>,
+                            li: ({ children }) => <li style={{ marginBottom: '0.25rem' }}>{children}</li>,
+                            blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #d196da', paddingLeft: '1rem', margin: '0.75rem 0', fontStyle: 'italic', color: '#6c757d' }}>{children}</blockquote>,
+                            code: ({ children }) => <code style={{ backgroundColor: '#f8f9fa', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.9rem' }}>{children}</code>,
+                            strong: ({ children }) => <strong style={{ color: '#2c3e50' }}>{children}</strong>,
+                            em: ({ children }) => <em style={{ color: '#6c757d' }}>{children}</em>
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
+                      ) : (
+                        msg.text
+                      )}
+                    </div>
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="message-sources">
+                        <div className="sources-header">📚 Sources:</div>
+                        {msg.sources.map((source, idx) => (
+                          <div key={idx} className="source-item">
+                            <strong>
+                              {source.documentName} (Page {source.pageNumber})
+                            </strong>
+                            <div className="source-text">{source.text}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+            {isProcessing && (
+              <div className="chat-message agent">
+                <div className="message-bubble agent">
+                  <div className="typing-indicator">Thinking...</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="chat-input-section">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={onKeyPress}
+              placeholder="Ask me about your test results, what they mean for your pregnancy, or any medical terms you'd like explained..."
+              className="chat-input"
+              disabled={uploadedDocs.length === 0 || isProcessing}
+            />
+            <button
+              onClick={handleSendMessage}
+              className="send-button"
+              disabled={!newMessage.trim() || uploadedDocs.length === 0 || isProcessing}
+              title="Send message"
+            >
+              ➤
+            </button>
+          </div>
         </div>
       </div>
     </div>

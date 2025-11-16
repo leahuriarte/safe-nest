@@ -1,6 +1,7 @@
 /* Document Helper Screen Styles */
 .document-helper-container {
   display: flex;
+  flex-direction: column;
   height: calc(100vh - 120px);
   width: 100%;
   background: #f8f9fa;
@@ -8,6 +9,14 @@
   padding: 1rem;
   padding-bottom: 0;
   box-sizing: border-box;
+}
+
+.document-helper-main {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  min-height: 0; /* Important for flex containers */
+  overflow: hidden;
 }
 
 /* LEFT PANEL - DOCUMENTS */
@@ -131,6 +140,7 @@
   flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  min-height: 0; /* Important for flex containers */
 }
 
 .chat-header {
@@ -143,10 +153,13 @@
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 10px;
   margin-bottom: 1rem;
+  min-height: 0; /* Important for flex containers */
+  max-height: calc(100vh - 400px); /* Ensure it doesn't exceed viewport */
 }
 
 .empty-chat {
