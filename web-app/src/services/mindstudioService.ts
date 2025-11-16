@@ -51,19 +51,22 @@ class MindStudioService {
         timestamp: Date.now()
       })
 
-      // Prepare request body
+      // Prepare request body with proper MindStudio format
+      // Note: Variables should match the Launch Variables defined in your MindStudio agent
       const requestBody: any = {
         workerId: this.config.agentId,
-        variables: {
-          message: userMessage,
-          ...variables
-        }
+        variables: variables || {}
       }
 
       // Include threadId for conversation continuity
       if (this.currentThreadId) {
         requestBody.threadId = this.currentThreadId
       }
+
+      console.log('MindStudio API Request:', {
+        url: `${this.config.baseUrl}/agents/run`,
+        body: requestBody
+      })
 
       // Call MindStudio API
       const response = await fetch(`${this.config.baseUrl}/agents/run`, {
@@ -77,10 +80,12 @@ class MindStudioService {
 
       if (!response.ok) {
         const errorText = await response.text()
+        console.error('MindStudio API Error Response:', errorText)
         throw new Error(`MindStudio API error (${response.status}): ${errorText}`)
       }
 
       const data: MindStudioApiResponse = await response.json()
+      console.log('MindStudio API Response:', data)
 
       // Store threadId for conversation continuity
       if (data.threadId) {
@@ -136,11 +141,11 @@ Please provide:
 3. Potential concerns
 4. Recommendations for pregnant individuals considering this clinic`
 
+    // Send as a single message variable - adjust based on your agent's Launch Variables
     return this.sendMessage(prompt, {
-      clinicName: clinicData.name,
-      clinicAddress: clinicData.address,
-      services: clinicData.services,
-      reviews: clinicData.reviews
+      message: prompt,
+      query: prompt,
+      input: prompt
     })
   }
 
