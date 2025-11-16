@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindStudio API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .config {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            min-height: 200px;
+            font-family: monospace;
+        }
+        .error {
+            color: #f00;
+        }
+        .success {
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>MindStudio API Test</h1>
+
+    <div class="config">
+        <h3>Configuration</h3>
+        <p><strong>Agent ID:</strong> deb8174b-3595-4b64-b269-9bb3f735d79f</p>
+        <p><strong>API Key:</strong> sk3PzBPUYmH6cOuwoECWO2yEkQuQK (first 10 chars)</p>
+        <p><strong>Endpoint:</strong> https://api.mindstudio.ai/developer/v2/agents/run</p>
+    </div>
+
+    <div>
+        <h3>Test Options</h3>
+        <button onclick="testWithNoVariables()">Test 1: No Variables</button>
+        <button onclick="testWithEmptyVariables()">Test 2: Empty Variables Object</button>
+        <button onclick="testWithMessageVariable()">Test 3: With Message Variable</button>
+        <button onclick="clearOutput()">Clear Output</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+        const API_KEY = 'sk3PzBPUYmH6cOuwoECWO2yEkQuQK';
+        const AGENT_ID = 'deb8174b-3595-4b64-b269-9bb3f735d79f';
+        const API_URL = 'https://api.mindstudio.ai/developer/v2/agents/run';
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        async function makeRequest(body, testName) {
+            log(`\n=== ${testName} ===`);
+            log(`Request Body: ${JSON.stringify(body, null, 2)}`);
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                log(`Response Status: ${response.status} ${response.statusText}`);
+
+                const responseText = await response.text();
+                let responseData;
+
+                try {
+                    responseData = JSON.parse(responseText);
+                    log(`Response: ${JSON.stringify(responseData, null, 2)}`, response.ok ? 'success' : 'error');
+                } catch (e) {
+                    log(`Response (raw): ${responseText}`, 'error');
+                }
+
+                if (response.ok) {
+                    log('✅ SUCCESS!', 'success');
+                } else {
+                    log('❌ FAILED', 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+        }
+
+        async function testWithNoVariables() {
+            await makeRequest({
+                workerId: AGENT_ID
+            }, 'Test 1: No Variables');
+        }
+
+        async function testWithEmptyVariables() {
+            await makeRequest({
+                workerId: AGENT_ID,
+                variables: {}
+            }, 'Test 2: Empty Variables Object');
+        }
+
+        async function testWithMessageVariable() {
+            await makeRequest({
+                workerId: AGENT_ID,
+                variables: {
+                    message: "Hello, can you evaluate pregnancy clinics?"
+                }
+            }, 'Test 3: With Message Variable');
+        }
+
+        log('MindStudio API Tester Ready');
+        log('Click a test button above to start testing');
+    </script>
+</body>
+</html>
