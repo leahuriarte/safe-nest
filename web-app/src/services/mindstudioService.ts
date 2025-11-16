@@ -1,5 +1,5 @@
 // MindStudio Agent API Service
-// Replace with your actual MindStudio agent credentials
+// Credentials are loaded from environment variables
 
 interface MindStudioConfig {
   agentId: string
@@ -18,15 +18,23 @@ interface MindStudioResponse {
   message: string
   data?: any
   error?: string
+  threadId?: string
+}
+
+interface MindStudioApiResponse {
+  result?: string
+  threadId?: string
+  billingCost?: number
 }
 
 class MindStudioService {
   private config: MindStudioConfig
   private conversationHistory: MindStudioMessage[] = []
+  private currentThreadId: string | null = null
 
   constructor(config: MindStudioConfig) {
     this.config = {
-      baseUrl: 'https://api.mindstudio.ai/v1', // Default MindStudio API endpoint
+      baseUrl: 'https://api.mindstudio.ai/developer/v2', // MindStudio API v2 endpoint
       ...config
     }
   }
@@ -34,7 +42,7 @@ class MindStudioService {
   /**
    * Send a message to the MindStudio agent
    */
-  async sendMessage(userMessage: string): Promise<MindStudioResponse> {
+  async sendMessage(userMessage: string, variables?: Record<string, any>): Promise<MindStudioResponse> {
     try {
       // Add user message to history
       this.conversationHistory.push({
@@ -43,36 +51,55 @@ class MindStudioService {
         timestamp: Date.now()
       })
 
+      // Prepare request body
+      const requestBody: any = {
+        workerId: this.config.agentId,
+        variables: {
+          message: userMessage,
+          ...variables
+        }
+      }
+
+      // Include threadId for conversation continuity
+      if (this.currentThreadId) {
+        requestBody.threadId = this.currentThreadId
+      }
+
       // Call MindStudio API
-      const response = await fetch(`${this.config.baseUrl}/agents/${this.config.agentId}/chat`, {
+      const response = await fetch(`${this.config.baseUrl}/agents/run`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`,
         },
-        body: JSON.stringify({
-          message: userMessage,
-          history: this.conversationHistory,
-          // Add any additional MindStudio-specific parameters here
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {
-        throw new Error(`MindStudio API error: ${response.statusText}`)
+        const errorText = await response.text()
+        throw new Error(`MindStudio API error (${response.status}): ${errorText}`)
       }
 
-      const data = await response.json()
+      const data: MindStudioApiResponse = await response.json()
+
+      // Store threadId for conversation continuity
+      if (data.threadId) {
+        this.currentThreadId = data.threadId
+      }
+
+      const assistantMessage = data.result || ''
 
       // Add assistant response to history
       this.conversationHistory.push({
         role: 'assistant',
-        content: data.response || data.message || '',
+        content: assistantMessage,
         timestamp: Date.now()
       })
 
       return {
         success: true,
-        message: data.response || data.message || '',
+        message: assistantMessage,
+        threadId: data.threadId,
         data: data
       }
     } catch (error) {
@@ -109,7 +136,12 @@ Please provide:
 3. Potential concerns
 4. Recommendations for pregnant individuals considering this clinic`
 
-    return this.sendMessage(prompt)
+    return this.sendMessage(prompt, {
+      clinicName: clinicData.name,
+      clinicAddress: clinicData.address,
+      services: clinicData.services,
+      reviews: clinicData.reviews
+    })
   }
 
   /**
@@ -131,6 +163,7 @@ Please provide:
    */
   clearHistory(): void {
     this.conversationHistory = []
+    this.currentThreadId = null
   }
 
   /**
@@ -141,11 +174,17 @@ Please provide:
   }
 }
 
-// Singleton instance - configure with your actual credentials
+// Singleton instance - credentials loaded from environment variables
+const apiKey = import.meta.env.VITE_MINDSTUDIO_API_KEY
+const agentId = import.meta.env.VITE_MINDSTUDIO_AGENT_ID
+
+if (!apiKey || !agentId) {
+  console.error('MindStudio credentials not configured. Please set VITE_MINDSTUDIO_API_KEY and VITE_MINDSTUDIO_AGENT_ID in your .env file')
+}
+
 export const mindstudioAgent = new MindStudioService({
-  agentId: 'YOUR_MINDSTUDIO_AGENT_ID', // Replace with your agent ID
-  apiKey: 'YOUR_MINDSTUDIO_API_KEY',   // Replace with your API key
-  // baseUrl: 'https://custom-endpoint.com' // Optional: custom endpoint
+  agentId: agentId || '',
+  apiKey: apiKey || ''
 })
 
 export default MindStudioService

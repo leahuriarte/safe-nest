@@ -11,10 +11,11 @@ SafeNest is a comprehensive web application designed to help pregnant individual
 - Environmental hazard identification
 - Risk scoring and recommendations
 
-### 🏥 Clinic Evaluator
-- Healthcare facility information and reviews
-- Service availability and quality ratings
-- Distance and accessibility analysis
+### 🏥 Clinic Evaluator (AI-Powered)
+- AI-powered clinic evaluation using MindStudio
+- Healthcare facility information and quality assessment
+- Interactive chat for clinic-related questions
+- Personalized recommendations for pregnancy care
 
 ### 👥 Community Experience
 - User reviews and experiences
@@ -48,6 +49,7 @@ SafeNest is a comprehensive web application designed to help pregnant individual
 - **Node.js** (v18 or higher)
 - **npm** (v8 or higher)
 - **Google Gemini API Key** ([Get one here](https://makersuite.google.com/app/apikey))
+- **MindStudio API Key** ([Get one here](https://app.mindstudio.ai/workspace/settings/developer?page=api-keys))
 
 ## Installation & Setup
 
@@ -73,10 +75,20 @@ PORT=3001
 ```
 
 #### Frontend Configuration
-The frontend is pre-configured to connect to `http://localhost:3001`. For production, update `web-app/.env`:
+Create `web-app/.env` file:
 ```env
-VITE_API_URL=https://your-production-backend.com
+# MindStudio AI Agent Configuration
+VITE_MINDSTUDIO_API_KEY=your_mindstudio_api_key_here
+VITE_MINDSTUDIO_AGENT_ID=your_mindstudio_agent_id_here
+
+# Optional: Backend API URL (defaults to http://localhost:3001)
+VITE_API_URL=http://localhost:3001
 ```
+
+**Finding Your MindStudio Credentials:**
+1. **API Key**: Go to [MindStudio Developer Settings](https://app.mindstudio.ai/workspace/settings/developer?page=api-keys)
+2. **Agent ID**: Open your agent in MindStudio → Explorer Tab → Root File → Metadata tab (copy the Agent ID at the bottom)
+3. **Important**: Your agent must be published for the API to work
 
 ## Running the Application
 
@@ -122,9 +134,16 @@ npm run dev
 - Receive AI-powered answers with source citations
 - View document previews and manage multiple files
 
-### 3. Clinic Evaluator & Community
-- Browse healthcare facilities and community reviews
-- Access local recommendations and experiences
+### 3. Clinic Evaluator
+- Navigate to the Clinic Info tab
+- Click "Evaluate This Clinic" for AI-powered assessment
+- Ask questions about clinic quality, safety, or specific concerns
+- Get personalized recommendations based on your pregnancy care needs
+- View ratings, strengths, concerns, and expert recommendations
+
+### 4. Community
+- Browse community reviews and experiences
+- Access local recommendations and tips
 
 ## API Endpoints
 
@@ -212,8 +231,12 @@ safe-nest/
 
 ### Environment Variables
 
-#### Required
+#### Backend Required
 - `GEMINI_API_KEY` - Google Gemini API key for document analysis
+
+#### Frontend Required
+- `VITE_MINDSTUDIO_API_KEY` - MindStudio API key for clinic evaluation
+- `VITE_MINDSTUDIO_AGENT_ID` - MindStudio agent ID
 
 #### Optional
 - `PORT` - Backend server port (default: 3001)
