@@ -391,7 +391,7 @@ const EXAMPLE_COMMENTS: { [key: number]: Comment[] } = {
       replies: [
         {
           id: 171,
-          user: "Dr. Amanda L.",
+          user: "Dr. Amanda L. ☑️ ",
           text: "Completely normal! It's your body's way of getting rid of excess fluids. It should improve after a few weeks. Keep hydrated and use absorbent towels on your bed.",
           likes: 78,
           dislikes: 0,

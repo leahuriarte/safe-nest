@@ -11,6 +11,7 @@
 .screen-container {
   width: 100%;
   max-width: 1000px;
-  height: calc(100vh - 4rem);
+  height: calc(100vh - 10rem);
   margin-top: 1rem;
+  margin-bottom: 2rem;
 }
