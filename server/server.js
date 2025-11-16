@@ -47,14 +47,19 @@ function findRelevantChunks(query, chunks, topK = 5) {
 app.post('/api/rag', async (req, res) => {
   try {
     const { query, chunks } = req.body;
+    console.log('RAG endpoint called with query:', query?.substring(0, 50));
 
     if (!query || !chunks || chunks.length === 0) {
+      console.log('Missing query or chunks');
       return res.status(400).json({ error: 'Query and chunks are required' });
     }
 
     if (!process.env.GEMINI_API_KEY) {
+      console.log('Gemini API key not configured');
       return res.status(500).json({ error: 'Gemini API key not configured' });
     }
+
+    console.log('Processing', chunks.length, 'chunks');
 
     // Find relevant chunks
     const relevantChunks = findRelevantChunks(query, chunks, 5);
@@ -113,10 +118,12 @@ Remember: You are a supportive guide helping someone navigate their pregnancy jo
 
 Answer:`;
 
+    console.log('Calling Gemini API...');
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const answer = response.text();
+    console.log('Gemini response received, length:', answer.length);
 
     // Extract sources that were actually cited in the answer
     const citedSources = relevantChunks.map((chunk, index) => {
@@ -137,7 +144,9 @@ Answer:`;
     });
   } catch (error) {
     console.error('RAG error:', error);
-    res.status(500).json({ error: 'Failed to generate response' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to generate response', details: error.message });
   }
 });
 
@@ -150,5 +159,8 @@ app.listen(PORT, () => {
   console.log(`SafeNest server running on port ${PORT}`);
   if (!process.env.GEMINI_API_KEY) {
     console.warn('⚠️  GEMINI_API_KEY environment variable not set');
+    console.warn('Current env keys:', Object.keys(process.env).filter(k => k.includes('GEMINI')));
+  } else {
+    console.log('✅ Gemini API key loaded successfully');
   }
 });
