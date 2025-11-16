@@ -25,6 +25,11 @@
   margin: 0;
   font-family: 'Quicksand', system-ui, sans-serif;
 }
+.app-logo {
+  height: 40px;
+  width: 40px;
+  object-fit: contain;
+}
 
 .app-main {
   flex: 1;

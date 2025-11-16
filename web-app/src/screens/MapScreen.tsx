@@ -521,7 +521,7 @@ export default function MapScreen() {
   
     <div className="map-screen">
       <div className="map-controls">
-        <h3>SafeNest — Pregnancy Risk Map</h3>
+        <h3>SafeNest — Risk Maps for Pregnant People</h3>
 
         <div className="control-panel">
           <h4>Map Layers</h4>

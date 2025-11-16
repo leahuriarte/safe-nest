@@ -4,6 +4,8 @@ import MapScreen from './screens/MapScreen'
 import ClinicEvaluatorScreen from './screens/ClinicEvaluatorScreen'
 import CommunityExperienceScreen from './screens/CommunityExperienceScreen'
 import MedicalInfoScreen from './screens/MedicalInfoScreen'
+import logo from "./assets/logo.png"
+
 
 type TabName = 'map' | 'eval' | 'community' | 'info' 
 
