@@ -12,6 +12,7 @@ import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer'
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol'
 import esriConfig from '@arcgis/core/config'
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils'
+import Search from '@arcgis/core/widgets/Search'
 import './MapScreen.css'
 import ChatbotModal from "../components/ChatbotModal"
 import AIEthicsWarning from '../components/AIEthicsWarning'
@@ -29,6 +30,7 @@ type RiskInfo = {
 
 export default function MapScreen() {
   const mapDiv = useRef<HTMLDivElement | null>(null)
+  const searchWidgetRef = useRef<Search | null>(null)
   const [view, setView] = useState<MapView | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [riskInfo, setRiskInfo] = useState<RiskInfo | null>(null)
@@ -40,6 +42,14 @@ export default function MapScreen() {
   const [chatOpen, setChatOpen] = useState(false);
 
   const apiKey = "AAPTxy8BH1VEsoebNVZXo8HurDgKT26idZJ1d3mlxL61L4Augub-D2I-YRgUN8j1PAwqW8uPEVvez-Kbm7yZ8Izt-KxA2cUcaoP5iO8S76y9LrdM0V4c5S2QKeKYZQy-7AhBZ6oxXFK4ZX0yniErz84D3v8xSwQOz2bMOniz6nDYaRwsVPso_UrB1H-QQQ9l7NKFaHj_hTviNoNbnWZ4t_cNRzDSxePlYKjZVd0sAoGRGA8.AT1_mNE0NHsT"
+
+  // Function to search for an address from the chatbot
+  const handleSearchAddress = (address: string) => {
+    if (searchWidgetRef.current) {
+      searchWidgetRef.current.searchTerm = address
+      searchWidgetRef.current.search()
+    }
+  }
 
   useEffect(() => {
     if (!apiKey) {
@@ -59,6 +69,22 @@ export default function MapScreen() {
       map,
       center: [-118.2437, 34.0522], // Los Angeles
       zoom: 12
+    })
+
+    // -----------------------------------------------------
+    // ADDRESS SEARCH WIDGET
+    // -----------------------------------------------------
+    const searchWidget = new Search({
+      view: mapView,
+      popupEnabled: false,
+      resultGraphicEnabled: true
+    })
+
+    searchWidgetRef.current = searchWidget
+
+    mapView.ui.add(searchWidget, {
+      position: 'top-right',
+      index: 0
     })
 
     // -----------------------------------------------------
@@ -590,8 +616,14 @@ export default function MapScreen() {
       </div>
 
       <div className="map-container" ref={mapDiv}></div>
-      
-      {chatOpen && <ChatbotModal onClose={() => setChatOpen(false)} />}
+
+      {chatOpen && (
+        <ChatbotModal
+          onClose={() => setChatOpen(false)}
+          onSearchAddress={handleSearchAddress}
+          userLocation="Los Angeles, CA"
+        />
+      )}
     </div>
   )
 }

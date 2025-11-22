@@ -1,0 +1,122 @@
+.mindstudio-demo-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.mindstudio-demo-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.mindstudio-demo-header h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.mindstudio-demo-header p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.mindstudio-demo-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.demo-info {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.demo-info h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.demo-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.demo-info li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+  color: #495057;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.demo-info li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.demo-info li:last-child {
+  border-bottom: none;
+}
+
+.demo-tips {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f1f3f4;
+}
+
+.demo-tips h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.demo-tips li:before {
+  content: "💡";
+}
+
+.chat-container {
+  height: 600px;
+}
+
+/* Responsive design */
+@media (max-width: 968px) {
+  .mindstudio-demo-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .chat-container {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mindstudio-demo-container {
+    padding: 1rem;
+  }
+  
+  .mindstudio-demo-header h1 {
+    font-size: 2rem;
+  }
+  
+  .demo-info {
+    padding: 1rem;
+  }
+  
+  .chat-container {
+    height: 400px;
+  }
+}

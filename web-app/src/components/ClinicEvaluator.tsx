@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { mindstudioAgent } from '../services/mindstudioService'
+import { clinicChatService } from '../services/clinicChatService'
 import './ClinicEvaluator.css'
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -31,28 +32,25 @@ export default function ClinicEvaluator({
     setIsLoading(true)
     setError(null)
 
-    try {
-      const response = await mindstudioAgent.evaluateClinic({
-        name: clinicName,
-        address: clinicAddress
-      })
+    const evaluationPrompt = `Please provide information about ${clinicName}${clinicAddress ? ` located at ${clinicAddress}` : ''}. Include details about their services, patient reviews if known, and any important information for pregnant individuals seeking care.`
 
-      if (response.success) {
-        setMessages([
-          {
-            role: 'user',
-            content: `Please evaluate ${clinicName}`,
-            timestamp: Date.now()
-          },
-          {
-            role: 'assistant',
-            content: response.message,
-            timestamp: Date.now()
-          }
-        ])
-      } else {
-        setError(response.error || 'Failed to evaluate clinic')
+    try {
+      const userMessage: Message = {
+        role: 'user',
+        content: `Please evaluate ${clinicName}`,
+        timestamp: Date.now()
       }
+
+      const response = await clinicChatService.sendMessage(evaluationPrompt)
+
+      setMessages([
+        userMessage,
+        {
+          role: 'assistant',
+          content: response,
+          timestamp: Date.now()
+        }
+      ])
     } catch (err) {
       setError('An error occurred while evaluating the clinic')
       console.error(err)
@@ -70,24 +68,21 @@ export default function ClinicEvaluator({
       timestamp: Date.now()
     }
 
+    const userInput = input
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await mindstudioAgent.sendMessage(input)
+      const response = await clinicChatService.sendMessage(userInput)
 
-      if (response.success) {
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: response.message,
-          timestamp: Date.now()
-        }
-        setMessages(prev => [...prev, assistantMessage])
-      } else {
-        setError(response.error || 'Failed to get response')
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: response,
+        timestamp: Date.now()
       }
+      setMessages(prev => [...prev, assistantMessage])
     } catch (err) {
       setError('An error occurred while sending your message')
       console.error(err)
@@ -105,7 +100,7 @@ export default function ClinicEvaluator({
 
   const handleReset = () => {
     setMessages([])
-    mindstudioAgent.reset()
+    clinicChatService.clearHistory()
     setError(null)
   }
 
@@ -147,7 +142,11 @@ export default function ClinicEvaluator({
               {msg.role === 'user' ? '👤' : '🤖'}
             </div>
             <div className="message-content">
-              <p>{msg.content}</p>
+              {msg.role === 'assistant' ? (
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              ) : (
+                <p>{msg.content}</p>
+              )}
               <span className="message-time">
                 {new Date(msg.timestamp).toLocaleTimeString()}
               </span>

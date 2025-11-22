@@ -314,7 +314,28 @@
 }
 
 .find-nearest-btn:active {
-  transform: translateY(0);    /* button “press” effect */
+  transform: translateY(0);    /* button "press" effect */
   box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+/* Search Widget Styling */
+.esri-search {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.esri-search__input {
+  font-family: 'Quicksand', system-ui, sans-serif;
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+
+.esri-search__submit-button {
+  background-color: #d196da;
+}
+
+.esri-search__submit-button:hover {
+  background-color: #a355add4;
 }
 

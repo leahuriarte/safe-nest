@@ -30,7 +30,8 @@ interface MindStudioApiResponse {
 class MindStudioService {
   private config: MindStudioConfig
   private conversationHistory: MindStudioMessage[] = []
-  private currentThreadId: string | null = null
+  private currentSessionId: string | null = null
+  private currentUserId: string | null = null
 
   constructor(config: MindStudioConfig) {
     this.config = {
@@ -40,7 +41,7 @@ class MindStudioService {
   }
 
   /**
-   * Send a message to the MindStudio agent
+   * Send a message to the MindStudio agent via our server
    */
   async sendMessage(userMessage: string, variables?: Record<string, any>): Promise<MindStudioResponse> {
     try {
@@ -51,43 +52,37 @@ class MindStudioService {
         timestamp: Date.now()
       })
 
-      // Prepare request body
-      const requestBody: any = {
-        workerId: this.config.agentId,
-        variables: {
-          message: userMessage,
-          ...variables
-        }
-      }
-
-      // Include threadId for conversation continuity
-      if (this.currentThreadId) {
-        requestBody.threadId = this.currentThreadId
-      }
-
-      // Call MindStudio API
-      const response = await fetch(`${this.config.baseUrl}/agents/run`, {
+      // Use our server endpoint instead of calling MindStudio directly
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      
+      const response = await fetch(`${API_BASE_URL}/api/mindstudio`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          message: userMessage,
+          sessionId: this.currentSessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: this.currentUserId || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        })
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`MindStudio API error (${response.status}): ${errorText}`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      const data: MindStudioApiResponse = await response.json()
+      const data = await response.json()
 
-      // Store threadId for conversation continuity
-      if (data.threadId) {
-        this.currentThreadId = data.threadId
+      // Store session info for conversation continuity
+      if (data.sessionId) {
+        this.currentSessionId = data.sessionId
+      }
+      if (!this.currentUserId) {
+        this.currentUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }
 
-      const assistantMessage = data.result || ''
+      const assistantMessage = data.response || 'No response received'
 
       // Add assistant response to history
       this.conversationHistory.push({
@@ -97,13 +92,13 @@ class MindStudioService {
       })
 
       return {
-        success: true,
+        success: data.success,
         message: assistantMessage,
         threadId: data.threadId,
         data: data
       }
     } catch (error) {
-      console.error('MindStudio API Error:', error)
+      console.error('MindStudio Service Error:', error)
       return {
         success: false,
         message: '',
@@ -163,7 +158,8 @@ Please provide:
    */
   clearHistory(): void {
     this.conversationHistory = []
-    this.currentThreadId = null
+    this.currentSessionId = null
+    this.currentUserId = null
   }
 
   /**
@@ -171,20 +167,23 @@ Please provide:
    */
   reset(): void {
     this.clearHistory()
+    
+    // Also reset on the server
+    if (this.currentSessionId) {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      fetch(`${API_BASE_URL}/api/mindstudio/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: this.currentSessionId })
+      }).catch(err => console.warn('Failed to reset server session:', err));
+    }
   }
 }
 
-// Singleton instance - credentials loaded from environment variables
-const apiKey = import.meta.env.VITE_MINDSTUDIO_API_KEY
-const agentId = import.meta.env.VITE_MINDSTUDIO_AGENT_ID
-
-if (!apiKey || !agentId) {
-  console.error('MindStudio credentials not configured. Please set VITE_MINDSTUDIO_API_KEY and VITE_MINDSTUDIO_AGENT_ID in your .env file')
-}
-
+// Singleton instance - uses server endpoint, no need for frontend credentials
 export const mindstudioAgent = new MindStudioService({
-  agentId: agentId || '',
-  apiKey: apiKey || ''
+  agentId: 'deb8174b-3595-4b64-b269-9bb3f735d79f', // Used for reference only
+  apiKey: 'server-handled' // Credentials handled by server
 })
 
 export default MindStudioService
